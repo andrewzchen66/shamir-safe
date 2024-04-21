@@ -1,0 +1,9 @@
+{
+    "user_username": "higashikata_josuke",
+    "user_password": "crazy_diamond",
+    "user_signing_key_path": "../keys/user0-rsa-private.key",
+    "user_verification_key_path": "../keys/user0-rsa-public.key",
+    "user_prg_seed_path": "../keys/user0-prg-seed.txt",
+    "user_certificate_path": "../keys/user0-cert-signature.txt",
+    "server_verification_key_path": "../keys/serv-rsa-public.key"
+}

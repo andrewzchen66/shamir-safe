@@ -1,0 +1,9 @@
+{
+    "user_username": "kujo_jotaro",
+    "user_password": "star_platinum",
+    "user_signing_key_path": "../keys/user1-rsa-private.key",
+    "user_verification_key_path": "../keys/user1-rsa-public.key",
+    "user_prg_seed_path": "../keys/user1-prg-seed.txt",
+    "user_certificate_path": "../keys/user1-cert-signature.txt",
+    "server_verification_key_path": "../keys/serv-rsa-public.key"
+}
