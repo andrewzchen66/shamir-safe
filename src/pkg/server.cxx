@@ -17,6 +17,7 @@
 #include "../../include/drivers/repl_driver.hpp"
 #include "../../include/pkg/server.hpp"
 #include "../../include/pkg/user.hpp"
+#include "../../include-shared/config.hpp"
 
 /**
  * Constructor

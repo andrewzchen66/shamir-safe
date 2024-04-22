@@ -1,5 +1,6 @@
 #pragma once
 
+#include <crypto++/hrtimer.h>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -19,21 +20,21 @@
 // ================================================
 
 namespace MessageType {
-enum T {
-  HMACTagged_Wrapper = 0,
-  Certificate_Message = 1,
-  UserToServer_DHPublicValue_Message = 2,
-  ServerToUser_DHPublicValue_Message = 3,
-  UserToServer_IDPrompt_Message = 4,
-  ServerToUser_Salt_Message = 5,
-  UserToServer_HashedAndSaltedPassword_Message = 6,
-  ServerToUser_PRGSeed_Message = 7,
-  UserToServer_PRGValue_Message = 8,
-  UserToServer_VerificationKey_Message = 9,
-  ServerToUser_IssuedCertificate_Message = 10,
-  UserToUser_DHPublicValue_Message = 11,
-  UserToUser_Message_Message = 12,
-};
+  enum T {
+    HMACTagged_Wrapper = 0,
+    Certificate_Message = 1,
+    UserToServer_DHPublicValue_Message = 2,
+    ServerToUser_DHPublicValue_Message = 3,
+    UserToServer_IDPrompt_Message = 4,
+    ServerToUser_Salt_Message = 5,
+    UserToServer_HashedAndSaltedPassword_Message = 6,
+    ServerToUser_PRGSeed_Message = 7,
+    UserToServer_PRGValue_Message = 8,
+    UserToServer_VerificationKey_Message = 9,
+    ServerToUser_IssuedCertificate_Message = 10,
+    UserToServer_IssuedCertificate_Message = 11,
+    UserToServer_EncryptedCredential_Message = 12
+  };
 };
 MessageType::T get_message_type(std::vector<unsigned char> &data);
 
@@ -149,21 +150,15 @@ struct ServerToUser_IssuedCertificate_Message : public Serializable {
   int deserialize(std::vector<unsigned char> &data);
 };
 
-// ================================================
-// USER <=> USER MESSAGES
-// ================================================
-
-struct UserToUser_DHPublicValue_Message : public Serializable {
-  CryptoPP::SecByteBlock public_value;
+struct UserToServer_IssuedCertificate_Message : public Serializable {
   Certificate_Message certificate;
-  std::string user_signature; // computed on public_value + certificate
 
   void serialize(std::vector<unsigned char> &data);
   int deserialize(std::vector<unsigned char> &data);
 };
 
-struct UserToUser_Message_Message : public Serializable {
-  std::string msg;
+struct UserToServer_Credential_Message : public Serializable {
+  CryptoPP::SecByteBlock cred;
 
   void serialize(std::vector<unsigned char> &data);
   int deserialize(std::vector<unsigned char> &data);

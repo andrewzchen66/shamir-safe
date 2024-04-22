@@ -1,4 +1,5 @@
 #include <cmath>
+#include <crypto++/asn.h>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
@@ -67,9 +68,8 @@ void UserClient::run() {
                   &UserClient::HandleLoginOrRegister);
   repl.add_action("register", "register <address> <port>",
                   &UserClient::HandleLoginOrRegister);
-  repl.add_action("listen", "listen <port>", &UserClient::HandleUser);
-  repl.add_action("connect", "connect <address> <port>",
-                  &UserClient::HandleUser);
+  repl.add_action("post", "post <address> <port> <cred_id> <url> <username> <password>", &UserClient::HandleGetOrPostCred);
+  repl.add_action("get", "get <address> <port> <cred_id>", &UserClient::HandleGetOrPostCred);
   repl.run();
 }
 
@@ -113,63 +113,6 @@ UserClient::HandleServerKeyExchange() {
   SecByteBlock shared_key = crypto_driver->DH_generate_shared_key(dh, private_key, server_pub_val_msg.server_public_value);
 
   // Generate and return AES and HMAC keys
-  return std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock>(crypto_driver->AES_generate_key(shared_key), crypto_driver->HMAC_generate_key(shared_key));
-}
-
-/**
- * Diffie-Hellman key exchange with another user. This function shuold:
- * 1) Generate a keypair, a, g^a, signs it, and sends it to the other user.
- *    Use concat_byteblock_and_cert to sign the message.
- * 2) Receive a public value from the other user and verifies its signature and
- * certificate.
- * 3) Generate a DH shared key and generate AES and HMAC keys.
- * 4) Store the other user's verification key in RSA_remote_verification_key.
- * @return tuple of AES_key, HMAC_key
- */
-std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock>
-UserClient::HandleUserKeyExchange() {
-  // TODO: implement me!
-  // Generate key pair
-  auto [dh, private_key, public_key] = crypto_driver->DH_initialize();
-
-  // Send public key + certificate + signature to other user
-  UserToUser_DHPublicValue_Message user_msg;
-  user_msg.public_value = public_key;
-  user_msg.certificate = this->certificate;
-  user_msg.user_signature = crypto_driver->RSA_sign(this->RSA_signing_key, concat_byteblock_and_cert(public_key, this->certificate));
-
-  std::vector<unsigned char> user_msg_vec;
-  user_msg.serialize(user_msg_vec);
-  network_driver->send(user_msg_vec);
-
-  // Recieve public key + certificate + signature from other user
-  UserToUser_DHPublicValue_Message other_user_msg;
-  std::vector<unsigned char> other_user_msg_vec = network_driver->read();
-  other_user_msg.deserialize(other_user_msg_vec);
-
-  // Verify certificate w/ server verification key, sign(id||vk_user)
-  bool other_user_cert_valid = crypto_driver->RSA_verify(
-    this->RSA_server_verification_key, 
-    concat_string_and_rsakey(other_user_msg.certificate.id, other_user_msg.certificate.verification_key),
-    other_user_msg.certificate.server_signature
-  );
-
-  // Verfiy user message w/ other user's verification key, sign(public_value, cert)
-  bool other_user_sig_valid = crypto_driver->RSA_verify(
-    other_user_msg.certificate.verification_key,
-    concat_byteblock_and_cert(other_user_msg.public_value, other_user_msg.certificate),
-    other_user_msg.user_signature
-  );
-
-  if (!other_user_cert_valid) throw std::runtime_error("Invalid server signature on certificate in HandleUserKeyExchange");
-  if (!other_user_sig_valid) throw std::runtime_error("Invalid user signature in HandleUserKeyExchange");
-
-  // Generate DH shared key
-  SecByteBlock shared_key = crypto_driver->DH_generate_shared_key(dh, private_key, other_user_msg.public_value);
-
-  // Store other user's verification key
-  this->RSA_remote_verification_key = other_user_msg.certificate.verification_key;
-
   return std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock>(crypto_driver->AES_generate_key(shared_key), crypto_driver->HMAC_generate_key(shared_key));
 }
 
@@ -293,103 +236,68 @@ void UserClient::DoLoginOrRegister(std::string input) {
   SavePRGSeed(this->user_config.user_prg_seed_path, this->prg_seed);
 }
 
-/**
- * Handles communicating with another user. This function
- * 1) Prompts the CLI to see if we're registering or logging in.
- * 2) Handles key exchange with the other user.
- */
-void UserClient::HandleUser(std::string input) {
-  // Handle if connecting or listening; parse user input.
-  std::vector<std::string> args = string_split(input, ' ');
-  bool isListener = args[0] == "listen";
-  if (isListener) {
-    if (args.size() != 2) {
-      this->cli_driver->print_warning("Invalid args, usage: listen <port>");
+
+void UserClient::HandleGetOrPostCred(std::string input) {
+  std::vector<std::string> input_split = string_split(input, ' ');
+
+  if (input_split[0] == "get") {
+    if (input_split.size() != 4) {
+    this->cli_driver->print_left("invalid number of arguments.");
+    return;
+    }
+    std::string address = input_split[1];
+    int port = std::stoi(input_split[2]);
+    std::string cred_id = input_split[3];
+
+    this->network_driver->connect(address, port);
+    this->DoGetCred(cred_id);
+  } else if (input_split[0] == "post") {
+    if (input_split.size() != 7) {
+      this->cli_driver->print_left("invalid number of arguments.");
       return;
     }
-    int port = std::stoi(args[1]);
-    this->network_driver->listen(port);
+    std::string address = input_split[1];
+    int port = std::stoi(input_split[2]);
+    std::string cred_id = input_split[3];
+    std::string url = input_split[4];
+    std::string username = input_split[5];
+    std::string password = input_split[6];
+
+    this->network_driver->connect(address, port);
+    if (this->DoPostCred(cred_id, url, username, password)) {
+      std::cout << "credential successfully posted" << std::endl;
+    } else {
+      std::cout << "an error occurred while attempting to post credential" << std::endl;
+    }
   } else {
-    if (args.size() != 3) {
-      this->cli_driver->print_warning(
-          "Invalid args, usage: connect <ip> <port>");
-      return;
-    }
-    std::string ip = args[1];
-    int port = std::stoi(args[2]);
-    this->network_driver->connect(ip, port);
-  }
-
-  // Exchange keys.
-  auto keys = this->HandleUserKeyExchange();
-
-  // Clear the screen
-  this->cli_driver->init();
-  this->cli_driver->print_success("Connected!");
-
-  // Set up communication
-  boost::thread msgListener =
-      boost::thread(boost::bind(&UserClient::ReceiveThread, this, keys));
-  this->SendThread(keys);
-  msgListener.join();
-}
-
-/**
- * Listen for messages and print to CLI.
- */
-void UserClient::ReceiveThread(
-    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
-  while (true) {
-    std::vector<unsigned char> encrypted_msg_data;
-    try {
-      encrypted_msg_data = this->network_driver->read();
-    } catch (std::runtime_error &_) {
-      this->cli_driver->print_info("Received EOF; closing connection.");
-      return;
-    }
-    // Check if HMAC is valid.
-    auto msg_data = this->crypto_driver->decrypt_and_verify(
-        keys.first, keys.second, encrypted_msg_data);
-    if (!msg_data.second) {
-      this->cli_driver->print_warning(
-          "Invalid MAC on message; closing connection.");
-      this->network_driver->disconnect();
-      throw std::runtime_error("User sent message with invalid MAC.");
-    }
-
-    // Decrypt and print.
-    UserToUser_Message_Message u2u_msg;
-    u2u_msg.deserialize(msg_data.first);
-    this->cli_driver->print_left(u2u_msg.msg);
+    throw std::runtime_error("Unsupported operation.");
   }
 }
 
-/**
- * Listen for stdin and send to other party.
- */
-void UserClient::SendThread(
-    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
-  std::string plaintext;
-  while (std::getline(std::cin, plaintext)) {
-    // Read from STDIN.
-    if (plaintext != "") {
-      UserToUser_Message_Message u2u_msg;
-      u2u_msg.msg = plaintext;
 
-      std::vector<unsigned char> msg_data =
-          this->crypto_driver->encrypt_and_tag(keys.first, keys.second,
-                                               &u2u_msg);
-      try {
-        this->network_driver->send(msg_data);
-      } catch (std::runtime_error &_) {
-        this->cli_driver->print_info(
-            "Other side is closed, closing connection");
-        this->network_driver->disconnect();
-        return;
-      }
-    }
-    this->cli_driver->print_right(plaintext);
-  }
-  this->cli_driver->print_info("Received EOF from user; closing connection");
-  this->network_driver->disconnect();
+CredRow UserClient::DoGetCred(std::string cred_id) {
+  
+}
+
+/**
+ * 1) Authenticate to server via RSA certificate? How is this done in practice?
+ * 2) Generate master key and encrypt credential
+ * 3) Send encrypted credential to server
+ * 4) Wait for response
+ */
+
+bool UserClient::DoPostCred(std::string cred_id, std::string url, std::string username, std::string password) {
+
+  SecByteBlock AES_key = crypto_driver->AES_generate_master_key(this->user_config.user_username, this->user_config.user_password);
+
+  UserToServer_EncryptedCredential_Message u2s_cred_msg;
+  u2s_cred_msg.encrypted_cred = ;
+
+  std::vector<unsigned char> plaintext;
+  u2s_cred_msg->serialize(plaintext);
+
+  std::pair<std::string, SecByteBlock> encrypted = crypto_driver->AES_encrypt(AES_key, chvec2str(plaintext));
+  std::string to_tag = std::string((const char *)encrypted.second.data(),
+                                   encrypted.second.size()) +
+                       encrypted.first;
 }

@@ -14,12 +14,12 @@
 #include "../../include/drivers/crypto_driver.hpp"
 #include "../../include/drivers/db_driver.hpp"
 #include "../../include/drivers/network_driver.hpp"
-#include "../../include-shared/config.hpp"
+#include "../../include-shared/confcig.hpp"
 #include "../../include-shared/keyloaders.hpp"
 
-class ServerClient {
+class NodeClient {
 public:
-  ServerClient(ServerConfig server_config);
+  NodeClient(NodeConfig node_config);
   void run(int port);
   bool HandleConnection(std::shared_ptr<NetworkDriver> network_driver,
                         std::shared_ptr<CryptoDriver> crypto_driver);

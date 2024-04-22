@@ -12,8 +12,9 @@
 #include "../../include/drivers/cli_driver.hpp"
 #include "../../include/drivers/crypto_driver.hpp"
 #include "../../include/drivers/network_driver.hpp"
-#include "config.hpp"
-#include "keyloaders.hpp"
+#include "../../include-shared/config.hpp"
+#include "../../include-shared/keyloaders.hpp"
+#include "../../include/drivers/db_driver.hpp"
 
 class UserClient {
 public:
@@ -27,7 +28,10 @@ public:
   HandleUserKeyExchange();
   void HandleLoginOrRegister(std::string input);
   void DoLoginOrRegister(std::string input);
-  void HandleUser(std::string input);
+
+  void HandleGetOrPostCred(std::string input);
+  CredRow DoGetCred(std::string input);
+  bool DoPostCred(std::string cred_id, std::string url, std::string username, std::string password);
 
 private:
   std::string id;

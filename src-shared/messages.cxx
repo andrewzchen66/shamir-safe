@@ -429,72 +429,53 @@ int ServerToUser_IssuedCertificate_Message::deserialize(
   return n;
 }
 
-// ================================================
-// USER <=> USER MESSAGES
-// ================================================
-
 /**
- * serialize UserToUser_DHPublicValue_Message.
+ * serialize UserToServer_IssuedCertificate_Message.
  */
-void UserToUser_DHPublicValue_Message::serialize(
+void UserToServer_IssuedCertificate_Message::serialize(
     std::vector<unsigned char> &data) {
   // Add message type.
-  data.push_back((char)MessageType::UserToUser_DHPublicValue_Message);
+  data.push_back((char)MessageType::UserToServer_IssuedCertificate_Message);
 
   // Add fields.
-  std::string value_string = byteblock_to_string(this->public_value);
-  put_string(value_string, data);
-
   std::vector<unsigned char> certificate_data;
   this->certificate.serialize(certificate_data);
   data.insert(data.end(), certificate_data.begin(), certificate_data.end());
-
-  put_string(this->user_signature, data);
 }
 
 /**
- * deserialize UserToUser_DHPublicValue_Message.
+ * deserialize UserToServer_IssuedCertificate_Message.
  */
-int UserToUser_DHPublicValue_Message::deserialize(
+int UserToServer_IssuedCertificate_Message::deserialize(
     std::vector<unsigned char> &data) {
   // Check correct message type.
-  assert(data[0] == MessageType::UserToUser_DHPublicValue_Message);
+  assert(data[0] == MessageType::UserToServer_IssuedCertificate_Message);
 
   // Get fields.
-  std::string value_string;
   int n = 1;
-  n += get_string(&value_string, data, n);
-  this->public_value = string_to_byteblock(value_string);
-
-  std::vector<unsigned char> slice =
-      std::vector<unsigned char>(data.begin() + n, data.end());
+  std::vector<unsigned char> slice = std::vector<unsigned char>(data.begin() + n, data.end());
   n += this->certificate.deserialize(slice);
 
-  n += get_string(&this->user_signature, data, n);
   return n;
 }
 
-/**
- * serialize UserToUser_Message_Message.
- */
-void UserToUser_Message_Message::serialize(std::vector<unsigned char> &data) {
-  // Add message type.
-  data.push_back((char)MessageType::UserToUser_Message_Message);
+void UserToServer_EncryptedCredential_Message::serialize(std::vector<unsigned char> &data) {
+  data.push_back((char)MessageType::UserToServer_EncryptedCredential_Message);
 
-  // Add fields.
-  put_string(this->msg, data);
+  std::string value_string = byteblock_to_string(this->encrypted_cred);
+  put_string(value_string, data);
 }
 
-/**
- * deserialize UserToUser_Message_Message.
- */
-int UserToUser_Message_Message::deserialize(std::vector<unsigned char> &data) {
+int UserToServer_EncryptedCredential_Message::deserialize(std::vector<unsigned char> &data) {
   // Check correct message type.
-  assert(data[0] == MessageType::UserToUser_Message_Message);
+  assert(data[0] == MessageType::UserToServer_EncryptedCredential_Message);
 
   // Get fields.
   int n = 1;
-  n += get_string(&this->msg, data, n);
+  std::string encrypted_cred_string;
+  n += get_string(&encrypted_cred_string, data, n);
+  this->encrypted_cred = string_to_byteblock(encrypted_cred_string);
+
   return n;
 }
 

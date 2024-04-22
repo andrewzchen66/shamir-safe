@@ -1,3 +1,5 @@
+#include <crypto++/secblock.h>
+#include <crypto++/sha.h>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -6,9 +8,11 @@
 #include "crypto++/osrng.h"
 #include "crypto++/pssr.h"
 #include "crypto++/rsa.h"
-#include <crypto++/cryptlib.h>
-#include <crypto++/files.h>
-#include <crypto++/queue.h>
+#include "crypto++/cryptlib.h"
+#include "crypto++/files.h"
+#include "crypto++/queue.h"
+#include "crypto++/pwdbased.h"
+#include "crypto++/blake2.h"
 
 #include "../../include-shared/constants.hpp"
 #include "../../include-shared/util.hpp"
@@ -45,6 +49,8 @@ CryptoDriver::encrypt_and_tag(SecByteBlock AES_key, SecByteBlock HMAC_key,
   msg.serialize(payload_data);
   return payload_data;
 }
+
+std::vector<unsigned char> 
 
 /**
  * @brief Verifies that the tagged HMAC is valid on the ciphertext and decrypts
@@ -112,6 +118,26 @@ SecByteBlock CryptoDriver::AES_generate_key(const SecByteBlock &DH_shared_key) {
   HKDF<SHA256> keygen;
   keygen.DeriveKey(k, k.size(), DH_shared_key, DH_shared_key.size(), aes_salt, aes_salt.size(), NULL, 0);
   return k;
+}
+
+/**
+ * @brief Generate AES key using PBKDF2 from password (with username as salt).
+ */
+SecByteBlock CryptoDriver::AES_generate_master_key(std::string username_text, std::string password_text) {
+  SecByteBlock password = string_to_byteblock(password_text);\
+  size_t plen = password.size();
+
+  SecByteBlock salt = string_to_byteblock(username_text);
+  size_t slen = salt.size();
+
+  SecByteBlock derived(AES::MAX_KEYLENGTH); /** @note key is 256 bit in bitwarden */
+
+  PKCS5_PBKDF2_HMAC<SHA256> pbkdf;
+  byte unused = 0;
+
+  pbkdf.DeriveKey(derived, derived.size(), unused, password, plen, salt, slen, 100000, 0.0f);
+  /** @note 100k iterations is standard for open source password managers, bitwarden uses 600k */
+  return derived;
 }
 
 /**

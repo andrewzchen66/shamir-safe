@@ -13,6 +13,7 @@
 #include "../../include/drivers/cli_driver.hpp"
 #include "../../include/pkg/server.hpp"
 #include "../../include/pkg/user.hpp"
+#include "../../include-shared/config.hpp"
 
 template <class T> class REPLDriver {
 public:

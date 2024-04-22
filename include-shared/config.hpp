@@ -21,3 +21,7 @@ struct ServerConfig {
   std::string server_verification_key_path;
 };
 ServerConfig load_server_config(std::string filename);
+
+struct NodeConfig {
+
+};
