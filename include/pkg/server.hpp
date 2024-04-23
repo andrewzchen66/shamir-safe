@@ -35,6 +35,16 @@ public:
       std::shared_ptr<CryptoDriver> crypto_driver, std::string id,
       std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys);
 
+  void HandleGetCred(
+    std::shared_ptr<NetworkDriver> network_driver,
+    std::shared_ptr<CryptoDriver> crypto_driver,
+    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys);
+
+  void HandlePostCred(
+      std::shared_ptr<NetworkDriver> network_driver,
+      std::shared_ptr<CryptoDriver> crypto_driver,
+      std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys);
+
 private:
   ServerConfig server_config;
   std::shared_ptr<CLIDriver> cli_driver;

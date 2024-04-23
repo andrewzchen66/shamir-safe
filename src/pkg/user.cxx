@@ -1,5 +1,6 @@
 #include <cmath>
 #include <crypto++/asn.h>
+#include <crypto++/secblock.h>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
@@ -65,11 +66,14 @@ UserClient::UserClient(std::shared_ptr<NetworkDriver> network_driver,
 void UserClient::run() {
   REPLDriver<UserClient> repl = REPLDriver<UserClient>(this);
   repl.add_action("login", "login <address> <port>",
-                  &UserClient::HandleLoginOrRegister);
+                  &UserClient::HandleProtocol);
   repl.add_action("register", "register <address> <port>",
-                  &UserClient::HandleLoginOrRegister);
-  repl.add_action("post", "post <address> <port> <cred_id> <url> <username> <password>", &UserClient::HandleGetOrPostCred);
-  repl.add_action("get", "get <address> <port> <cred_id>", &UserClient::HandleGetOrPostCred);
+                  &UserClient::HandleProtocol);
+  repl.add_action("post",
+                  "post <address> <port> <cred_id> <url> <username> <password>",
+                  &UserClient::HandleProtocol);
+  repl.add_action("get", "get <address> <port> <cred_id>",
+                  &UserClient::HandleProtocol);
   repl.run();
 }
 
@@ -101,35 +105,90 @@ UserClient::HandleServerKeyExchange() {
   server_pub_val_msg.deserialize(server_msg_vec);
 
   crypto_driver->RSA_verify(
-    this->RSA_server_verification_key, 
-    concat_byteblocks(public_key, server_pub_val_msg.server_public_value), 
-    server_pub_val_msg.server_signature
-  );
+      this->RSA_server_verification_key,
+      concat_byteblocks(public_key, server_pub_val_msg.server_public_value),
+      server_pub_val_msg.server_signature);
 
-  if (byteblock_to_string(public_key) != byteblock_to_string(server_pub_val_msg.user_public_value))
+  if (byteblock_to_string(public_key) !=
+      byteblock_to_string(server_pub_val_msg.user_public_value))
     throw std::runtime_error("Public value received by server was not g^a");
 
   // Generate a DH shared key
-  SecByteBlock shared_key = crypto_driver->DH_generate_shared_key(dh, private_key, server_pub_val_msg.server_public_value);
+  SecByteBlock shared_key = crypto_driver->DH_generate_shared_key(
+      dh, private_key, server_pub_val_msg.server_public_value);
 
   // Generate and return AES and HMAC keys
-  return std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock>(crypto_driver->AES_generate_key(shared_key), crypto_driver->HMAC_generate_key(shared_key));
+  return std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock>(
+      crypto_driver->AES_generate_key(shared_key),
+      crypto_driver->HMAC_generate_key(shared_key));
 }
 
 /**
  * User login or register.
  */
-void UserClient::HandleLoginOrRegister(std::string input) {
+void UserClient::HandleProtocol(std::string input) {
   // Connect to server and check if we are registering.
-  std::vector<std::string> input_split = string_split(input, ' ');
-  if (input_split.size() != 3) {
-    this->cli_driver->print_left("invalid number of arguments.");
-    return;
-  }
-  std::string address = input_split[1];
-  int port = std::stoi(input_split[2]);
-  this->network_driver->connect(address, port);
-  this->DoLoginOrRegister(input_split[0]);
+  // try {
+    std::vector<std::string> input_split = string_split(input, ' ');
+
+    std::string address = input_split[1];
+    int port = std::stoi(input_split[2]);
+    this->network_driver->connect(address, port);
+
+    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys =
+        HandleServerKeyExchange();
+
+    if (input_split[0] == "register") {
+      if (input_split.size() != 3) {
+        this->cli_driver->print_left("invalid number of arguments.");
+        return;
+      }
+      this->SendProtocol("register", keys);
+      this->DoRegister(keys);
+    } else if (input_split[0] == "login") {
+      if (input_split.size() != 3) {
+        this->cli_driver->print_left("invalid number of arguments.");
+        return;
+      }
+      this->SendProtocol("login", keys);
+      this->DoLogin(keys);
+    } else if (input_split[0] == "get") {
+      if (input_split.size() != 4) {
+        this->cli_driver->print_left("invalid number of arguments.");
+        return;
+      }
+      std::string cred_id = input_split[3];
+
+      this->SendProtocol("get", keys);
+      this->DoGetCred(cred_id, keys);
+    } else if (input_split[0] == "post") {
+      if (input_split.size() != 7) {
+        this->cli_driver->print_left("invalid number of arguments.");
+        return;
+      }
+      std::string cred_id = input_split[3];
+      std::string url = input_split[4];
+      std::string username = input_split[5];
+      std::string password = input_split[6];
+
+      this->SendProtocol("post", keys);
+      this->DoPostCred(cred_id, url, username, password, keys);
+    } else {
+      this->cli_driver->print_left("unsupported operation");
+    }
+  // }
+}
+
+void UserClient::SendProtocol(
+    std::string protocol,
+    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
+
+  UserToServer_Protocol_Message u2s_protocol_msg;
+  u2s_protocol_msg.protocol = protocol;
+  std::vector<unsigned char> u2s_protocol_enc_vec =
+      crypto_driver->encrypt_and_tag(keys.first, keys.second,
+                                     &u2s_protocol_msg);
+  network_driver->send(u2s_protocol_enc_vec);
 }
 
 /**
@@ -147,24 +206,20 @@ void UserClient::HandleLoginOrRegister(std::string input) {
  * Remember to store RSA keys in this->RSA_signing_key and
  * this->RSA_verification_key
  */
-void UserClient::DoLoginOrRegister(std::string input) {
+void UserClient::DoRegister(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
   // TODO: implement me!
 
   // Handle server key exchange; get AES and HMAC keys
-  auto [aes_key, hmac_key] = HandleServerKeyExchange();
+  SecByteBlock aes_key = keys.first;
+  SecByteBlock hmac_key = keys.second;
 
   // Send ID and intent to server
   UserToServer_IDPrompt_Message user_idprompt_msg;
   user_idprompt_msg.id = this->user_config.user_username;
-  if (input == "register")
-    user_idprompt_msg.new_user = true;
-  else if (input == "login") 
-    user_idprompt_msg.new_user = false;
-  else
-    throw std::runtime_error("Unknown action in DoLoginOrRegister");
-  
-  
-  std::vector<unsigned char> user_idprompt_msg_enc = crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_idprompt_msg);
+  user_idprompt_msg.new_user = true;
+
+  std::vector<unsigned char> user_idprompt_msg_enc =
+      crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_idprompt_msg);
   network_driver->send(user_idprompt_msg_enc);
 
   // Recieves salt from server
@@ -172,40 +227,49 @@ void UserClient::DoLoginOrRegister(std::string input) {
   std::vector<unsigned char> server_salt_msg_enc;
   try {
     server_salt_msg_enc = network_driver->read();
-  } catch(const std::runtime_error e) {
+  } catch (const std::runtime_error e) {
     std::cout << "Something went wrong during login/registration." << std::endl;
     return;
   }
-  
-  auto [server_salt_msg_vec, server_salt_valid] = crypto_driver->decrypt_and_verify(aes_key, hmac_key, server_salt_msg_enc);
+
+  auto [server_salt_msg_vec, server_salt_valid] =
+      crypto_driver->decrypt_and_verify(aes_key, hmac_key, server_salt_msg_enc);
   server_salt_msg.deserialize(server_salt_msg_vec);
 
-  if (!server_salt_valid) throw std::runtime_error("Server salt decrpytion/verification error in DoLoginOrRegister");
+  if (!server_salt_valid)
+    throw std::runtime_error(
+        "Server salt decrpytion/verification error in DoLoginOrRegister");
 
   // salt password and send to server
   UserToServer_HashedAndSaltedPassword_Message user_hspw_msg;
-  user_hspw_msg.hspw = crypto_driver->hash(this->user_config.user_password + server_salt_msg.salt);
-  std::vector<unsigned char> user_hspw_msg_enc = crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_hspw_msg);
+  user_hspw_msg.hspw = crypto_driver->hash(this->user_config.user_password +
+                                           server_salt_msg.salt);
+  std::vector<unsigned char> user_hspw_msg_enc =
+      crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_hspw_msg);
   network_driver->send(user_hspw_msg_enc);
 
-  // recieve and store prg seed from user if registering 
-  if (input == "register") {
-    ServerToUser_PRGSeed_Message server_prgseed_msg;
-    std::vector<unsigned char> server_prgseed_msg_enc = network_driver->read();
-    auto [server_prgseed_msg_vec, server_prgseed_valid] = crypto_driver->decrypt_and_verify(aes_key, hmac_key, server_prgseed_msg_enc);
-    server_prgseed_msg.deserialize(server_prgseed_msg_vec);
+  // recieve and store prg seed from user if registering
+  ServerToUser_PRGSeed_Message server_prgseed_msg;
+  std::vector<unsigned char> server_prgseed_msg_enc = network_driver->read();
+  auto [server_prgseed_msg_vec, server_prgseed_valid] =
+      crypto_driver->decrypt_and_verify(aes_key, hmac_key,
+                                        server_prgseed_msg_enc);
+  server_prgseed_msg.deserialize(server_prgseed_msg_vec);
 
-    if (!server_prgseed_valid) throw std::runtime_error("Server PRG seed decrpytion/verification error in DoLoginOrRegister");
+  if (!server_prgseed_valid)
+    throw std::runtime_error(
+        "Server PRG seed decrpytion/verification error in DoLoginOrRegister");
 
-    this->prg_seed = server_prgseed_msg.seed;
-  }
+  this->prg_seed = server_prgseed_msg.seed;
 
   // send 2fa response
   UserToServer_PRGValue_Message user_2fa_msg;
   SecByteBlock time_now = integer_to_byteblock(crypto_driver->nowish());
-  SecByteBlock user_prf_val = crypto_driver->prg(this->prg_seed, time_now, PRG_SIZE);
+  SecByteBlock user_prf_val =
+      crypto_driver->prg(this->prg_seed, time_now, PRG_SIZE);
   user_2fa_msg.value = user_prf_val;
-  std::vector<unsigned char> user_2fa_msg_enc = crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_2fa_msg);
+  std::vector<unsigned char> user_2fa_msg_enc =
+      crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_2fa_msg);
   network_driver->send(user_2fa_msg_enc);
 
   // generate rsa keypair
@@ -216,67 +280,144 @@ void UserClient::DoLoginOrRegister(std::string input) {
   // send user verification key to server for signing
   UserToServer_VerificationKey_Message user_vk_msg;
   user_vk_msg.verification_key = rsa_public_key;
-  std::vector<unsigned char> user_vk_msg_enc = crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_vk_msg);
+  std::vector<unsigned char> user_vk_msg_enc =
+      crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_vk_msg);
   network_driver->send(user_vk_msg_enc);
 
   // recieve and store certificate from server
   ServerToUser_IssuedCertificate_Message server_cert_msg;
   std::vector<unsigned char> server_cert_msg_enc = network_driver->read();
-  auto [server_cert_msg_vec, server_cert_valid] = crypto_driver->decrypt_and_verify(aes_key, hmac_key, server_cert_msg_enc);
+  auto [server_cert_msg_vec, server_cert_valid] =
+      crypto_driver->decrypt_and_verify(aes_key, hmac_key, server_cert_msg_enc);
   server_cert_msg.deserialize(server_cert_msg_vec);
 
-  if (!server_salt_valid) throw std::runtime_error("Server certificate decrpytion/verification error in DoLoginOrRegister");
+  if (!server_salt_valid)
+    throw std::runtime_error("Server certificate decrpytion/verification error "
+                             "in DoLoginOrRegister");
 
   this->certificate = server_cert_msg.certificate;
 
   // save keys, certificate, and prg seed
   SaveRSAPrivateKey(this->user_config.user_signing_key_path, rsa_private_key);
-  SaveRSAPublicKey(this->user_config.user_verification_key_path, rsa_public_key);
+  SaveRSAPublicKey(this->user_config.user_verification_key_path,
+                   rsa_public_key);
   SaveCertificate(this->user_config.user_certificate_path, this->certificate);
   SavePRGSeed(this->user_config.user_prg_seed_path, this->prg_seed);
 }
 
+void UserClient::DoLogin(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
+  // TODO: implement me!
 
-void UserClient::HandleGetOrPostCred(std::string input) {
-  std::vector<std::string> input_split = string_split(input, ' ');
+  // Handle server key exchange; get AES and HMAC keys
+  SecByteBlock aes_key = keys.first;
+  SecByteBlock hmac_key = keys.second;
 
-  if (input_split[0] == "get") {
-    if (input_split.size() != 4) {
-    this->cli_driver->print_left("invalid number of arguments.");
+  // Send ID and intent to server
+  UserToServer_IDPrompt_Message user_idprompt_msg;
+  user_idprompt_msg.id = this->user_config.user_username;
+  user_idprompt_msg.new_user = false;
+
+  std::vector<unsigned char> user_idprompt_msg_enc =
+      crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_idprompt_msg);
+  network_driver->send(user_idprompt_msg_enc);
+
+  // Recieves salt from server
+  ServerToUser_Salt_Message server_salt_msg;
+  std::vector<unsigned char> server_salt_msg_enc;
+  try {
+    server_salt_msg_enc = network_driver->read();
+  } catch (const std::runtime_error e) {
+    std::cout << "Something went wrong during login/registration." << std::endl;
     return;
-    }
-    std::string address = input_split[1];
-    int port = std::stoi(input_split[2]);
-    std::string cred_id = input_split[3];
-
-    this->network_driver->connect(address, port);
-    this->DoGetCred(cred_id);
-  } else if (input_split[0] == "post") {
-    if (input_split.size() != 7) {
-      this->cli_driver->print_left("invalid number of arguments.");
-      return;
-    }
-    std::string address = input_split[1];
-    int port = std::stoi(input_split[2]);
-    std::string cred_id = input_split[3];
-    std::string url = input_split[4];
-    std::string username = input_split[5];
-    std::string password = input_split[6];
-
-    this->network_driver->connect(address, port);
-    if (this->DoPostCred(cred_id, url, username, password)) {
-      std::cout << "credential successfully posted" << std::endl;
-    } else {
-      std::cout << "an error occurred while attempting to post credential" << std::endl;
-    }
-  } else {
-    throw std::runtime_error("Unsupported operation.");
   }
+
+  auto [server_salt_msg_vec, server_salt_valid] = 
+      crypto_driver->decrypt_and_verify(aes_key, hmac_key, server_salt_msg_enc);
+  server_salt_msg.deserialize(server_salt_msg_vec);
+
+  if (!server_salt_valid)
+    throw std::runtime_error(
+        "Server salt decrpytion/verification error in DoLoginOrRegister");
+
+  // salt password and send to server
+  UserToServer_HashedAndSaltedPassword_Message user_hspw_msg;
+  user_hspw_msg.hspw = crypto_driver->hash(this->user_config.user_password +
+                                           server_salt_msg.salt);
+  std::vector<unsigned char> user_hspw_msg_enc =
+      crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_hspw_msg);
+  network_driver->send(user_hspw_msg_enc);
+
+  // send 2fa response
+  UserToServer_PRGValue_Message user_2fa_msg;
+  SecByteBlock time_now = integer_to_byteblock(crypto_driver->nowish());
+  SecByteBlock user_prf_val =
+      crypto_driver->prg(this->prg_seed, time_now, PRG_SIZE);
+  user_2fa_msg.value = user_prf_val;
+  std::vector<unsigned char> user_2fa_msg_enc =
+      crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_2fa_msg);
+  network_driver->send(user_2fa_msg_enc);
+
+  // generate rsa keypair
+  auto [rsa_private_key, rsa_public_key] = crypto_driver->RSA_generate_keys();
+  this->RSA_signing_key = rsa_private_key;
+  this->RSA_verification_key = rsa_public_key;
+
+  // send user verification key to server for signing
+  UserToServer_VerificationKey_Message user_vk_msg;
+  user_vk_msg.verification_key = rsa_public_key;
+  std::vector<unsigned char> user_vk_msg_enc =
+      crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_vk_msg);
+  network_driver->send(user_vk_msg_enc);
+
+  // recieve and store certificate from server
+  ServerToUser_IssuedCertificate_Message server_cert_msg;
+  std::vector<unsigned char> server_cert_msg_enc = network_driver->read();
+  auto [server_cert_msg_vec, server_cert_valid] =
+      crypto_driver->decrypt_and_verify(aes_key, hmac_key, server_cert_msg_enc);
+  server_cert_msg.deserialize(server_cert_msg_vec);
+
+  if (!server_salt_valid)
+    throw std::runtime_error("Server certificate decrpytion/verification error "
+                             "in DoLoginOrRegister");
+
+  this->certificate = server_cert_msg.certificate;
+
+  // save keys, certificate, and prg seed
+  SaveRSAPrivateKey(this->user_config.user_signing_key_path, rsa_private_key);
+  SaveRSAPublicKey(this->user_config.user_verification_key_path,
+                   rsa_public_key);
+  SaveCertificate(this->user_config.user_certificate_path, this->certificate);
+  SavePRGSeed(this->user_config.user_prg_seed_path, this->prg_seed);
 }
 
+void UserClient::DoGetCred(std::string name, std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
+  // name: refers to the name given to the credential i.e. google, fidelity, ipad etc.
+  SecByteBlock AES_master_key = crypto_driver->AES_generate_master_key(
+      this->user_config.user_username, this->user_config.user_password);
 
-CredRow UserClient::DoGetCred(std::string cred_id) {
-  
+  // send query to server (i.e. cred_id)
+  UserToServer_Query_Message u2s_query_msg;
+  u2s_query_msg.cred_id = crypto_driver->hash(this->user_config.user_username + name);
+
+  std::vector<unsigned char> u2s_query_env_vec = crypto_driver->encrypt_and_tag(keys.first, keys.second, &u2s_query_msg);
+  network_driver->send(u2s_query_env_vec);
+
+  // receive encrypted credential from server
+  Credential_Message s2u_cred_msg;
+  std::vector<unsigned char> s2u_cred_enc_vec = network_driver->read();
+  auto [s2u_cred_data, s2u_cred_valid] = crypto_driver->decrypt_and_verify(keys.first, keys.second, s2u_cred_enc_vec);
+  if (!s2u_cred_valid) {
+    throw std::runtime_error("Decrpyption/Verification not valid in HandleConnection");
+  }
+  s2u_cred_msg.deserialize(s2u_cred_data);
+
+  // decrypt credential
+  std::vector<unsigned char> plaintext = str2chvec(crypto_driver->AES_decrypt(AES_master_key, string_to_byteblock(s2u_cred_msg.iv), s2u_cred_msg.ciphertext));
+  Credential cred;
+  cred.deserialize(plaintext);
+
+  // print decrypted credential
+  std::cout << cred.name + " " + cred.url + " " + cred.username + " " + cred.password << std::endl;
 }
 
 /**
@@ -286,18 +427,37 @@ CredRow UserClient::DoGetCred(std::string cred_id) {
  * 4) Wait for response
  */
 
-bool UserClient::DoPostCred(std::string cred_id, std::string url, std::string username, std::string password) {
+void UserClient::DoPostCred(std::string name, std::string url,
+                            std::string username, std::string password, std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
+  // TODO
+  // What is the best way for server to verify user's identity here?
+  // Would verifying certificate work? In handleuser, the certificate is
+  // verified as well as the message. It's probably OK for now to have this not
+  // implemented.
 
-  SecByteBlock AES_key = crypto_driver->AES_generate_master_key(this->user_config.user_username, this->user_config.user_password);
+  SecByteBlock AES_master_key = crypto_driver->AES_generate_master_key(
+      this->user_config.user_username, this->user_config.user_password);
 
-  UserToServer_EncryptedCredential_Message u2s_cred_msg;
-  u2s_cred_msg.encrypted_cred = ;
-
+  // get string representation of credential
+  Credential cred;
+  cred.user_id = this->user_config.user_username;
+  cred.name = name;
+  cred.url = url;
+  cred.username = username;
+  cred.password = password;
+  
   std::vector<unsigned char> plaintext;
-  u2s_cred_msg->serialize(plaintext);
+  cred.serialize(plaintext);
 
-  std::pair<std::string, SecByteBlock> encrypted = crypto_driver->AES_encrypt(AES_key, chvec2str(plaintext));
-  std::string to_tag = std::string((const char *)encrypted.second.data(),
-                                   encrypted.second.size()) +
-                       encrypted.first;
+  // encrypt credential w/ master key
+  std::pair<std::string, SecByteBlock> pair = crypto_driver->AES_encrypt(AES_master_key, chvec2str(plaintext));
+
+  // send encrypted credential to server for secret sharing and storage
+  Credential_Message u2s_cred_msg;
+  u2s_cred_msg.cred_id = crypto_driver->hash(this->user_config.user_username + name); // hash(user_name||credential_name)
+  u2s_cred_msg.ciphertext = pair.first;
+  u2s_cred_msg.iv = byteblock_to_string(pair.second);
+
+  std::vector<unsigned char> u2s_cred_env_vec = crypto_driver->encrypt_and_tag(keys.first, keys.second, &u2s_cred_msg);
+  network_driver->send(u2s_cred_env_vec);
 }

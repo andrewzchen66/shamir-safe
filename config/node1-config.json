@@ -1,0 +1,5 @@
+{
+    "node_name": "node1",
+    "node_db_path": "../keys/node1.db",
+    "node_verification_key_path": "../keys/serv-rsa-public.key"
+}

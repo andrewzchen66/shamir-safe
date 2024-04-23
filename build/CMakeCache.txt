@@ -453,6 +453,12 @@ doctest_BINARY_DIR:STATIC=/home/cs1515-user/final-ps-wd/build/_deps/doctest-buil
 //Value Computed by CMake
 doctest_SOURCE_DIR:STATIC=/home/cs1515-user/final-ps-wd/build/_deps/doctest-src
 
+//Dependencies for the target
+pswd_lib_LIB_DEPENDS:STATIC=general;pswd_lib_shared;
+
+//Dependencies for the target
+pswd_lib_shared_LIB_DEPENDS:STATIC=general;cryptopp;general;sqlite3;general;Boost::thread;general;Boost::system;general;Boost::filesystem;general;Boost::log;general;Boost::log_setup;general;/usr/lib/aarch64-linux-gnu/libcurses.so;general;/usr/lib/aarch64-linux-gnu/libform.so;
+
 
 ########################
 # INTERNAL cache entries
@@ -604,7 +610,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=3
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=2
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

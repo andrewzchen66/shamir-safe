@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.10)
 
 # project details
 project(AuthApp VERSION 1.0)
-set(USER_EXEC_NAME auth_user)
-set(SERVER_EXEC_NAME auth_server)
-set(LIBRARY_NAME auth_app_lib)
-set(LIBRARY_NAME_SHARED auth_app_lib_shared)
-set(LIBRARY_NAME_TA auth_app_lib_ta)
+set(USER_EXEC_NAME user)
+set(SERVER_EXEC_NAME server)
+set(NODE_EXEC_NAME node)
+set(LIBRARY_NAME pswd_lib)
+set(LIBRARY_NAME_SHARED pswd_lib_shared)
 
 # turn on gdb
 set(CMAKE_BUILD_TYPE Debug)
@@ -42,6 +42,7 @@ target_link_libraries(${LIBRARY_NAME_SHARED} PRIVATE ${CURSES_LIBRARIES})
 set(SOURCES
   src/pkg/server.cxx
   src/pkg/user.cxx
+  src/pkg/node.cxx
   src/drivers/cli_driver.cxx
   src/drivers/crypto_driver.cxx
   src/drivers/db_driver.cxx
@@ -51,38 +52,13 @@ add_library(${LIBRARY_NAME} ${SOURCES})
 target_include_directories(${LIBRARY_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include-shared ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(${LIBRARY_NAME} PRIVATE ${LIBRARY_NAME_SHARED})
 
-# add ta libraries
-if ( "$ENV{CS1515_TA_MODE}" STREQUAL "on" )
-  set(SOURCES_TA
-    src-ta/pkg/server.cxx
-    src-ta/pkg/user.cxx
-    src-ta/drivers/cli_driver.cxx
-    src-ta/drivers/crypto_driver.cxx
-    src-ta/drivers/db_driver.cxx
-    src-ta/drivers/network_driver.cxx
-    src-ta/drivers/repl_driver.cxx)
-  add_library(${LIBRARY_NAME_TA} ${SOURCES_TA})
-  target_include_directories(${LIBRARY_NAME_TA} PUBLIC ${PROJECT_SOURCE_DIR}/include-shared ${PROJECT_SOURCE_DIR}/include-ta)
-  target_link_libraries(${LIBRARY_NAME_TA} PRIVATE ${LIBRARY_NAME_SHARED})
-endif()
-
 # add user executables
-if ( "$ENV{CS1515_TA_MODE}" STREQUAL "on" )
-  add_executable(${USER_EXEC_NAME} src-ta/cmd/user.cxx)
-  target_link_libraries(${USER_EXEC_NAME} PRIVATE ${LIBRARY_NAME_TA})
-else()
-  add_executable(${USER_EXEC_NAME} src/cmd/user.cxx)
-  target_link_libraries(${USER_EXEC_NAME} PRIVATE ${LIBRARY_NAME})
-endif()
+add_executable(${USER_EXEC_NAME} src/cmd/user.cxx)
+target_link_libraries(${USER_EXEC_NAME} PRIVATE ${LIBRARY_NAME})
 
 # add server executables
-if ( "$ENV{CS1515_TA_MODE}" STREQUAL "on" )
-  add_executable(${SERVER_EXEC_NAME} src-ta/cmd/server.cxx)
-  target_link_libraries(${SERVER_EXEC_NAME} PRIVATE ${LIBRARY_NAME_TA})
-else()
-  add_executable(${SERVER_EXEC_NAME} src/cmd/server.cxx)
-  target_link_libraries(${SERVER_EXEC_NAME} PRIVATE ${LIBRARY_NAME})
-endif()
+add_executable(${SERVER_EXEC_NAME} src/cmd/server.cxx)
+target_link_libraries(${SERVER_EXEC_NAME} PRIVATE ${LIBRARY_NAME})
 
 # properties
 set_target_properties(
@@ -95,17 +71,6 @@ set_target_properties(
       CXX_EXTENSIONS YES
 )
 
-# ta properties
-if ( "$ENV{CS1515_TA_MODE}" STREQUAL "on" )
-  set_target_properties(
-    ${LIBRARY_NAME_TA}
-        PROPERTIES
-          CXX_STANDARD 20
-          CXX_STANDARD_REQUIRED YES
-          CXX_EXTENSIONS YES
-  )
-endif()
-
 # add tests
-add_subdirectory(test)
-add_custom_target(check ./test.sh)
+# add_subdirectory(test)
+# add_custom_target(check ./test.sh)

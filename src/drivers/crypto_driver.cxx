@@ -50,8 +50,6 @@ CryptoDriver::encrypt_and_tag(SecByteBlock AES_key, SecByteBlock HMAC_key,
   return payload_data;
 }
 
-std::vector<unsigned char> 
-
 /**
  * @brief Verifies that the tagged HMAC is valid on the ciphertext and decrypts
  * the given message using AES. Takes in an HMACTagged_Wrapper as bytes.

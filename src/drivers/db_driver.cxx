@@ -23,9 +23,9 @@ int DBDriver::open(std::string dbpath) {
 int DBDriver::close() { return sqlite3_close(this->db); }
 
 /**
- * Initialize tables.
+ * Initialize tables for server.
  */
-void DBDriver::init_tables() {
+void DBDriver::init_server_tables() {
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
@@ -42,15 +42,21 @@ void DBDriver::init_tables() {
     std::cout << "User table created successfully" << std::endl;
   }
 
+}
+
+/**
+ * Initialize tables for server.
+ */
+void DBDriver::init_node_tables() {
+  // Lock db driver.
+  std::unique_lock<std::mutex> lck(this->mtx);
+
   // Add another table to store user credentials
-  std::string create_creds_table_query = "CREATE TABLE IF NOT EXISTS cred("
+  std::string create_cred_table_query = "CREATE TABLE IF NOT EXISTS cred("
                              "cred_id TEXT PRIMARY KEY NOT NULL, "
-                             "user_id TEXT NOT NULL, "
-                             "url TEXT NOT NULL, "
-                             "username TEXT NOT NULL, "
-                             "password TEXT NOT NULL, "
-                             "FOREIGN KEY (user_id) REFERENCES user(user_id));";
-  exit = sqlite3_exec(this->db, create_creds_table_query.c_str(), NULL, 0, &err);
+                             "ciphertext TEXT NOT NULL);";
+  char *err;
+  int exit = sqlite3_exec(this->db, create_cred_table_query.c_str(), NULL, 0, &err);
   if (exit != SQLITE_OK) {
     std::cerr << "Error creating creds table: " << err << std::endl;
   } else {
@@ -185,7 +191,7 @@ std::vector<std::string> DBDriver::get_users() {
   std::unique_lock<std::mutex> lck(this->mtx);
 
   std::string users_query = "SELECT user_id "
-                            "FROM usere";
+                            "FROM user";
 
   // Prepare statement.
   sqlite3_stmt *stmt;
@@ -221,8 +227,8 @@ CredRow DBDriver::find_cred(std::string cred_id) {
   std::unique_lock<std::mutex> lck(this->mtx);
 
   std::string find_query =
-      "SELECT cred_id, user_id, url, username, password "
-      "FROM user WHERE cred_id = ?";
+      "SELECT cred_id, ciphertext "
+      "FROM cred WHERE cred_id = ?";
 
   // Prepare statement.
   sqlite3_stmt *stmt;
@@ -237,31 +243,15 @@ CredRow DBDriver::find_cred(std::string cred_id) {
       const void *raw_result;
       int num_bytes;
       switch (colIndex) {
-      case 0:
-        raw_result = sqlite3_column_blob(stmt, colIndex);
-        num_bytes = sqlite3_column_bytes(stmt, colIndex);
-        cred.cred_id = std::string((const char *)raw_result, num_bytes);
-        break;
-      case 1:
-        raw_result = sqlite3_column_blob(stmt, colIndex);
-        num_bytes = sqlite3_column_bytes(stmt, colIndex);
-        cred.user_id = std::string((const char *)raw_result, num_bytes);
-        break;
-      case 2:
-        raw_result = sqlite3_column_blob(stmt, colIndex);
-        num_bytes = sqlite3_column_bytes(stmt, colIndex);
-        cred.url = std::string((const char *)raw_result, num_bytes);
-        break;
-      case 3:
-        raw_result = sqlite3_column_blob(stmt, colIndex);
-        num_bytes = sqlite3_column_bytes(stmt, colIndex);
-        cred.username = std::string((const char *)raw_result, num_bytes);
-        break;
-      case 4:
-        raw_result = sqlite3_column_blob(stmt, colIndex);
-        num_bytes = sqlite3_column_bytes(stmt, colIndex);
-        cred.password = std::string((const char *)raw_result, num_bytes);
-        break;
+        case 0:
+          raw_result = sqlite3_column_blob(stmt, colIndex);
+          num_bytes = sqlite3_column_bytes(stmt, colIndex);
+          cred.cred_id = std::string((const char *)raw_result, num_bytes);
+        case 1:
+          raw_result = sqlite3_column_blob(stmt, colIndex);
+          num_bytes = sqlite3_column_bytes(stmt, colIndex);
+          cred.ciphertext = std::string((const char *)raw_result, num_bytes);
+          break;
       }
     }
   }
@@ -278,17 +268,14 @@ CredRow DBDriver::insert_cred(CredRow cred) {
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
-  std::string insert_query = "INSERT INTO cred(cred_id, user_id, "
-                             "url, username, password) VALUES(?, ?, ?, ?, ?);";
+  std::string insert_query = "INSERT INTO cred(cred_id, ciphertext)"
+                             " VALUES(?, ?);";
 
   // Prepare statement.
   sqlite3_stmt *stmt;
   sqlite3_prepare_v2(this->db, insert_query.c_str(), insert_query.length(), &stmt, nullptr);
   sqlite3_bind_blob(stmt, 1, cred.cred_id.c_str(), cred.cred_id.length(), SQLITE_STATIC);
-  sqlite3_bind_blob(stmt, 2, cred.user_id.c_str(), cred.user_id.length(), SQLITE_STATIC);
-  sqlite3_bind_blob(stmt, 3, cred.url.c_str(), cred.url.length(), SQLITE_STATIC);
-  sqlite3_bind_blob(stmt, 4, cred.username.c_str(), cred.username.length(), SQLITE_STATIC);
-  sqlite3_bind_blob(stmt, 5, cred.password.c_str(), cred.password.length(), SQLITE_STATIC);
+  sqlite3_bind_blob(stmt, 2, cred.ciphertext.c_str(), cred.ciphertext.length(), SQLITE_STATIC);
 
   // Run and return.
   sqlite3_step(stmt);
@@ -296,6 +283,7 @@ CredRow DBDriver::insert_cred(CredRow cred) {
   if (exit != SQLITE_OK) {
     std::cerr << "Error inserting user " << std::endl;
   }
+
   return cred;
 }
 

@@ -459,23 +459,81 @@ int UserToServer_IssuedCertificate_Message::deserialize(
   return n;
 }
 
-void UserToServer_EncryptedCredential_Message::serialize(std::vector<unsigned char> &data) {
-  data.push_back((char)MessageType::UserToServer_EncryptedCredential_Message);
+void Credential::serialize(std::vector<unsigned char> &data) {
+  data.push_back((char)MessageType::Credential_Message);
 
-  std::string value_string = byteblock_to_string(this->encrypted_cred);
-  put_string(value_string, data);
+  put_string(this->user_id, data);
+  put_string(this->name, data);
+  put_string(this->url, data);
+  put_string(this->username, data);
+  put_string(this->password, data);
 }
 
-int UserToServer_EncryptedCredential_Message::deserialize(std::vector<unsigned char> &data) {
+int Credential::deserialize(std::vector<unsigned char> &data) {
   // Check correct message type.
-  assert(data[0] == MessageType::UserToServer_EncryptedCredential_Message);
+  assert(data[0] == MessageType::Credential_Message);
 
   // Get fields.
   int n = 1;
-  std::string encrypted_cred_string;
-  n += get_string(&encrypted_cred_string, data, n);
-  this->encrypted_cred = string_to_byteblock(encrypted_cred_string);
+  n += get_string(&this->user_id, data, n);
+  n += get_string(&this->name, data, n);
+  n += get_string(&this->url, data, n);
+  n += get_string(&this->username, data, n);
+  n += get_string(&this->password, data, n);
 
+  return n;
+}
+
+/**
+ * serialize UserToServer_Protocol_Message
+ */
+void UserToServer_Protocol_Message::serialize(std::vector<unsigned char> &data) {
+  data.push_back((char)MessageType::UserToServer_Protocol_Message);
+
+  put_string(this->protocol, data);
+}
+
+ /**
+ * deserialize UserToServer_Protocol_Message
+ */
+int UserToServer_Protocol_Message::deserialize(std::vector<unsigned char> &data) {
+  assert(data[0] == MessageType::UserToServer_Protocol_Message);
+
+  // Get fields.
+  int n = 1;
+  n += get_string(&this->protocol, data, n);
+  return n;
+}
+
+void UserToServer_Query_Message::serialize(std::vector<unsigned char> &data) {
+  data.push_back((char)MessageType::UserToServer_Query_Message);
+
+  put_string(this->cred_id, data);
+}
+
+int UserToServer_Query_Message::deserialize(std::vector<unsigned char> &data) {
+  assert(data[0] == MessageType::UserToServer_Query_Message);
+  // Get fields.
+  int n = 1;
+  n += get_string(&this->cred_id, data, n);
+  return n;
+}
+
+void Credential_Message::serialize(std::vector<unsigned char> &data) {
+  data.push_back((char)MessageType::UserToServer_Query_Message);
+
+  put_string(this->cred_id, data);
+  put_string(this->ciphertext, data);
+  put_string(this->iv, data);
+}
+
+int Credential_Message::deserialize(std::vector<unsigned char> &data) {
+  assert(data[0] == MessageType::Credential_Message);
+  // Get fields.
+  int n = 1;
+  n += get_string(&this->cred_id, data, n);
+  n += get_string(&this->ciphertext, data, n);
+  n += get_string(&this->iv, data, n);
   return n;
 }
 

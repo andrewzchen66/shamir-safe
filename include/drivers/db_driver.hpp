@@ -14,10 +14,7 @@ struct UserRow {
 
 struct CredRow {
   std::string cred_id;
-  std::string user_id;
-  std::string url;
-  std::string username;
-  std::string password;
+  std::string ciphertext;
 };
 
 class DBDriver {
@@ -26,7 +23,8 @@ public:
   int open(std::string dbpath);
   int close();
 
-  void init_tables();
+  void init_server_tables();
+  void init_node_tables();
   void reset_tables();
 
   UserRow find_user(std::string user_id);
@@ -36,6 +34,8 @@ public:
   CredRow find_cred(std::string cred_id);
   CredRow insert_cred(CredRow cred);
   std::vector<std::string> get_creds();
+
+
 private:
   std::mutex mtx;
   sqlite3 *db;

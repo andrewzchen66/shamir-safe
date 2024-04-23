@@ -3,8 +3,6 @@
 
 CMakeFiles/auth_server.dir/src/cmd/server.cxx.o: ../include-shared/config.hpp
 CMakeFiles/auth_server.dir/src/cmd/server.cxx.o: ../include-shared/keyloaders.hpp
-CMakeFiles/auth_server.dir/src/cmd/server.cxx.o: ../include-shared/messages.hpp
-CMakeFiles/auth_server.dir/src/cmd/server.cxx.o: ../include-shared/config.hpp
 CMakeFiles/auth_server.dir/src/cmd/server.cxx.o: ../include-shared/logger.hpp
 CMakeFiles/auth_server.dir/src/cmd/server.cxx.o: ../include-shared/messages.hpp
 CMakeFiles/auth_server.dir/src/cmd/server.cxx.o: ../include/drivers/cli_driver.hpp

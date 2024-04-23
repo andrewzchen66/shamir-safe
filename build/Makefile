@@ -168,30 +168,56 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named check
+# Target rules for targets named server
 
 # Build rule for target.
-check: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 check
-.PHONY : check
+server: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 server
+.PHONY : server
 
 # fast build rule for target.
-check/fast:
-	$(MAKE) -f CMakeFiles/check.dir/build.make CMakeFiles/check.dir/build
-.PHONY : check/fast
+server/fast:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/build
+.PHONY : server/fast
 
 #=============================================================================
-# Target rules for targets named auth_app_lib_shared
+# Target rules for targets named user
 
 # Build rule for target.
-auth_app_lib_shared: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 auth_app_lib_shared
-.PHONY : auth_app_lib_shared
+user: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 user
+.PHONY : user
 
 # fast build rule for target.
-auth_app_lib_shared/fast:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/build
-.PHONY : auth_app_lib_shared/fast
+user/fast:
+	$(MAKE) -f CMakeFiles/user.dir/build.make CMakeFiles/user.dir/build
+.PHONY : user/fast
+
+#=============================================================================
+# Target rules for targets named pswd_lib
+
+# Build rule for target.
+pswd_lib: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 pswd_lib
+.PHONY : pswd_lib
+
+# fast build rule for target.
+pswd_lib/fast:
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/build
+.PHONY : pswd_lib/fast
+
+#=============================================================================
+# Target rules for targets named pswd_lib_shared
+
+# Build rule for target.
+pswd_lib_shared: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 pswd_lib_shared
+.PHONY : pswd_lib_shared
+
+# fast build rule for target.
+pswd_lib_shared/fast:
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/build
+.PHONY : pswd_lib_shared/fast
 
 #=============================================================================
 # Target rules for targets named NightlyMemCheck
@@ -205,19 +231,6 @@ NightlyMemCheck: cmake_check_build_system
 NightlyMemCheck/fast:
 	$(MAKE) -f CMakeFiles/NightlyMemCheck.dir/build.make CMakeFiles/NightlyMemCheck.dir/build
 .PHONY : NightlyMemCheck/fast
-
-#=============================================================================
-# Target rules for targets named auth_user
-
-# Build rule for target.
-auth_user: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 auth_user
-.PHONY : auth_user
-
-# fast build rule for target.
-auth_user/fast:
-	$(MAKE) -f CMakeFiles/auth_user.dir/build.make CMakeFiles/auth_user.dir/build
-.PHONY : auth_user/fast
 
 #=============================================================================
 # Target rules for targets named NightlyTest
@@ -272,19 +285,6 @@ ContinuousBuild/fast:
 .PHONY : ContinuousBuild/fast
 
 #=============================================================================
-# Target rules for targets named auth_app_lib
-
-# Build rule for target.
-auth_app_lib: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 auth_app_lib
-.PHONY : auth_app_lib
-
-# fast build rule for target.
-auth_app_lib/fast:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/build
-.PHONY : auth_app_lib/fast
-
-#=============================================================================
 # Target rules for targets named NightlyConfigure
 
 # Build rule for target.
@@ -309,19 +309,6 @@ NightlyMemoryCheck: cmake_check_build_system
 NightlyMemoryCheck/fast:
 	$(MAKE) -f CMakeFiles/NightlyMemoryCheck.dir/build.make CMakeFiles/NightlyMemoryCheck.dir/build
 .PHONY : NightlyMemoryCheck/fast
-
-#=============================================================================
-# Target rules for targets named auth_server
-
-# Build rule for target.
-auth_server: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 auth_server
-.PHONY : auth_server
-
-# fast build rule for target.
-auth_server/fast:
-	$(MAKE) -f CMakeFiles/auth_server.dir/build.make CMakeFiles/auth_server.dir/build
-.PHONY : auth_server/fast
 
 #=============================================================================
 # Target rules for targets named ExperimentalTest
@@ -622,26 +609,13 @@ doctest_with_main/fast:
 	$(MAKE) -f _deps/doctest-build/CMakeFiles/doctest_with_main.dir/build.make _deps/doctest-build/CMakeFiles/doctest_with_main.dir/build
 .PHONY : doctest_with_main/fast
 
-#=============================================================================
-# Target rules for targets named unit_tests
-
-# Build rule for target.
-unit_tests: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 unit_tests
-.PHONY : unit_tests
-
-# fast build rule for target.
-unit_tests/fast:
-	$(MAKE) -f test/CMakeFiles/unit_tests.dir/build.make test/CMakeFiles/unit_tests.dir/build
-.PHONY : unit_tests/fast
-
 src-shared/config.o: src-shared/config.cxx.o
 
 .PHONY : src-shared/config.o
 
 # target to build an object file
 src-shared/config.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/config.cxx.o
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/config.cxx.o
 .PHONY : src-shared/config.cxx.o
 
 src-shared/config.i: src-shared/config.cxx.i
@@ -650,7 +624,7 @@ src-shared/config.i: src-shared/config.cxx.i
 
 # target to preprocess a source file
 src-shared/config.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/config.cxx.i
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/config.cxx.i
 .PHONY : src-shared/config.cxx.i
 
 src-shared/config.s: src-shared/config.cxx.s
@@ -659,7 +633,7 @@ src-shared/config.s: src-shared/config.cxx.s
 
 # target to generate assembly for a file
 src-shared/config.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/config.cxx.s
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/config.cxx.s
 .PHONY : src-shared/config.cxx.s
 
 src-shared/keyloaders.o: src-shared/keyloaders.cxx.o
@@ -668,7 +642,7 @@ src-shared/keyloaders.o: src-shared/keyloaders.cxx.o
 
 # target to build an object file
 src-shared/keyloaders.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/keyloaders.cxx.o
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/keyloaders.cxx.o
 .PHONY : src-shared/keyloaders.cxx.o
 
 src-shared/keyloaders.i: src-shared/keyloaders.cxx.i
@@ -677,7 +651,7 @@ src-shared/keyloaders.i: src-shared/keyloaders.cxx.i
 
 # target to preprocess a source file
 src-shared/keyloaders.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/keyloaders.cxx.i
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/keyloaders.cxx.i
 .PHONY : src-shared/keyloaders.cxx.i
 
 src-shared/keyloaders.s: src-shared/keyloaders.cxx.s
@@ -686,7 +660,7 @@ src-shared/keyloaders.s: src-shared/keyloaders.cxx.s
 
 # target to generate assembly for a file
 src-shared/keyloaders.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/keyloaders.cxx.s
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/keyloaders.cxx.s
 .PHONY : src-shared/keyloaders.cxx.s
 
 src-shared/logger.o: src-shared/logger.cxx.o
@@ -695,7 +669,7 @@ src-shared/logger.o: src-shared/logger.cxx.o
 
 # target to build an object file
 src-shared/logger.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/logger.cxx.o
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/logger.cxx.o
 .PHONY : src-shared/logger.cxx.o
 
 src-shared/logger.i: src-shared/logger.cxx.i
@@ -704,7 +678,7 @@ src-shared/logger.i: src-shared/logger.cxx.i
 
 # target to preprocess a source file
 src-shared/logger.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/logger.cxx.i
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/logger.cxx.i
 .PHONY : src-shared/logger.cxx.i
 
 src-shared/logger.s: src-shared/logger.cxx.s
@@ -713,7 +687,7 @@ src-shared/logger.s: src-shared/logger.cxx.s
 
 # target to generate assembly for a file
 src-shared/logger.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/logger.cxx.s
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/logger.cxx.s
 .PHONY : src-shared/logger.cxx.s
 
 src-shared/messages.o: src-shared/messages.cxx.o
@@ -722,7 +696,7 @@ src-shared/messages.o: src-shared/messages.cxx.o
 
 # target to build an object file
 src-shared/messages.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/messages.cxx.o
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/messages.cxx.o
 .PHONY : src-shared/messages.cxx.o
 
 src-shared/messages.i: src-shared/messages.cxx.i
@@ -731,7 +705,7 @@ src-shared/messages.i: src-shared/messages.cxx.i
 
 # target to preprocess a source file
 src-shared/messages.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/messages.cxx.i
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/messages.cxx.i
 .PHONY : src-shared/messages.cxx.i
 
 src-shared/messages.s: src-shared/messages.cxx.s
@@ -740,7 +714,7 @@ src-shared/messages.s: src-shared/messages.cxx.s
 
 # target to generate assembly for a file
 src-shared/messages.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/messages.cxx.s
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/messages.cxx.s
 .PHONY : src-shared/messages.cxx.s
 
 src-shared/util.o: src-shared/util.cxx.o
@@ -749,7 +723,7 @@ src-shared/util.o: src-shared/util.cxx.o
 
 # target to build an object file
 src-shared/util.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/util.cxx.o
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/util.cxx.o
 .PHONY : src-shared/util.cxx.o
 
 src-shared/util.i: src-shared/util.cxx.i
@@ -758,7 +732,7 @@ src-shared/util.i: src-shared/util.cxx.i
 
 # target to preprocess a source file
 src-shared/util.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/util.cxx.i
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/util.cxx.i
 .PHONY : src-shared/util.cxx.i
 
 src-shared/util.s: src-shared/util.cxx.s
@@ -767,7 +741,7 @@ src-shared/util.s: src-shared/util.cxx.s
 
 # target to generate assembly for a file
 src-shared/util.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_app_lib_shared.dir/build.make CMakeFiles/auth_app_lib_shared.dir/src-shared/util.cxx.s
+	$(MAKE) -f CMakeFiles/pswd_lib_shared.dir/build.make CMakeFiles/pswd_lib_shared.dir/src-shared/util.cxx.s
 .PHONY : src-shared/util.cxx.s
 
 src/cmd/server.o: src/cmd/server.cxx.o
@@ -776,7 +750,7 @@ src/cmd/server.o: src/cmd/server.cxx.o
 
 # target to build an object file
 src/cmd/server.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_server.dir/build.make CMakeFiles/auth_server.dir/src/cmd/server.cxx.o
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/cmd/server.cxx.o
 .PHONY : src/cmd/server.cxx.o
 
 src/cmd/server.i: src/cmd/server.cxx.i
@@ -785,7 +759,7 @@ src/cmd/server.i: src/cmd/server.cxx.i
 
 # target to preprocess a source file
 src/cmd/server.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_server.dir/build.make CMakeFiles/auth_server.dir/src/cmd/server.cxx.i
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/cmd/server.cxx.i
 .PHONY : src/cmd/server.cxx.i
 
 src/cmd/server.s: src/cmd/server.cxx.s
@@ -794,7 +768,7 @@ src/cmd/server.s: src/cmd/server.cxx.s
 
 # target to generate assembly for a file
 src/cmd/server.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_server.dir/build.make CMakeFiles/auth_server.dir/src/cmd/server.cxx.s
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/src/cmd/server.cxx.s
 .PHONY : src/cmd/server.cxx.s
 
 src/cmd/user.o: src/cmd/user.cxx.o
@@ -803,7 +777,7 @@ src/cmd/user.o: src/cmd/user.cxx.o
 
 # target to build an object file
 src/cmd/user.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_user.dir/build.make CMakeFiles/auth_user.dir/src/cmd/user.cxx.o
+	$(MAKE) -f CMakeFiles/user.dir/build.make CMakeFiles/user.dir/src/cmd/user.cxx.o
 .PHONY : src/cmd/user.cxx.o
 
 src/cmd/user.i: src/cmd/user.cxx.i
@@ -812,7 +786,7 @@ src/cmd/user.i: src/cmd/user.cxx.i
 
 # target to preprocess a source file
 src/cmd/user.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_user.dir/build.make CMakeFiles/auth_user.dir/src/cmd/user.cxx.i
+	$(MAKE) -f CMakeFiles/user.dir/build.make CMakeFiles/user.dir/src/cmd/user.cxx.i
 .PHONY : src/cmd/user.cxx.i
 
 src/cmd/user.s: src/cmd/user.cxx.s
@@ -821,7 +795,7 @@ src/cmd/user.s: src/cmd/user.cxx.s
 
 # target to generate assembly for a file
 src/cmd/user.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_user.dir/build.make CMakeFiles/auth_user.dir/src/cmd/user.cxx.s
+	$(MAKE) -f CMakeFiles/user.dir/build.make CMakeFiles/user.dir/src/cmd/user.cxx.s
 .PHONY : src/cmd/user.cxx.s
 
 src/drivers/cli_driver.o: src/drivers/cli_driver.cxx.o
@@ -830,7 +804,7 @@ src/drivers/cli_driver.o: src/drivers/cli_driver.cxx.o
 
 # target to build an object file
 src/drivers/cli_driver.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/cli_driver.cxx.o
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/cli_driver.cxx.o
 .PHONY : src/drivers/cli_driver.cxx.o
 
 src/drivers/cli_driver.i: src/drivers/cli_driver.cxx.i
@@ -839,7 +813,7 @@ src/drivers/cli_driver.i: src/drivers/cli_driver.cxx.i
 
 # target to preprocess a source file
 src/drivers/cli_driver.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/cli_driver.cxx.i
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/cli_driver.cxx.i
 .PHONY : src/drivers/cli_driver.cxx.i
 
 src/drivers/cli_driver.s: src/drivers/cli_driver.cxx.s
@@ -848,7 +822,7 @@ src/drivers/cli_driver.s: src/drivers/cli_driver.cxx.s
 
 # target to generate assembly for a file
 src/drivers/cli_driver.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/cli_driver.cxx.s
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/cli_driver.cxx.s
 .PHONY : src/drivers/cli_driver.cxx.s
 
 src/drivers/crypto_driver.o: src/drivers/crypto_driver.cxx.o
@@ -857,7 +831,7 @@ src/drivers/crypto_driver.o: src/drivers/crypto_driver.cxx.o
 
 # target to build an object file
 src/drivers/crypto_driver.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/crypto_driver.cxx.o
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/crypto_driver.cxx.o
 .PHONY : src/drivers/crypto_driver.cxx.o
 
 src/drivers/crypto_driver.i: src/drivers/crypto_driver.cxx.i
@@ -866,7 +840,7 @@ src/drivers/crypto_driver.i: src/drivers/crypto_driver.cxx.i
 
 # target to preprocess a source file
 src/drivers/crypto_driver.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/crypto_driver.cxx.i
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/crypto_driver.cxx.i
 .PHONY : src/drivers/crypto_driver.cxx.i
 
 src/drivers/crypto_driver.s: src/drivers/crypto_driver.cxx.s
@@ -875,7 +849,7 @@ src/drivers/crypto_driver.s: src/drivers/crypto_driver.cxx.s
 
 # target to generate assembly for a file
 src/drivers/crypto_driver.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/crypto_driver.cxx.s
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/crypto_driver.cxx.s
 .PHONY : src/drivers/crypto_driver.cxx.s
 
 src/drivers/db_driver.o: src/drivers/db_driver.cxx.o
@@ -884,7 +858,7 @@ src/drivers/db_driver.o: src/drivers/db_driver.cxx.o
 
 # target to build an object file
 src/drivers/db_driver.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/db_driver.cxx.o
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/db_driver.cxx.o
 .PHONY : src/drivers/db_driver.cxx.o
 
 src/drivers/db_driver.i: src/drivers/db_driver.cxx.i
@@ -893,7 +867,7 @@ src/drivers/db_driver.i: src/drivers/db_driver.cxx.i
 
 # target to preprocess a source file
 src/drivers/db_driver.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/db_driver.cxx.i
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/db_driver.cxx.i
 .PHONY : src/drivers/db_driver.cxx.i
 
 src/drivers/db_driver.s: src/drivers/db_driver.cxx.s
@@ -902,7 +876,7 @@ src/drivers/db_driver.s: src/drivers/db_driver.cxx.s
 
 # target to generate assembly for a file
 src/drivers/db_driver.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/db_driver.cxx.s
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/db_driver.cxx.s
 .PHONY : src/drivers/db_driver.cxx.s
 
 src/drivers/network_driver.o: src/drivers/network_driver.cxx.o
@@ -911,7 +885,7 @@ src/drivers/network_driver.o: src/drivers/network_driver.cxx.o
 
 # target to build an object file
 src/drivers/network_driver.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/network_driver.cxx.o
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/network_driver.cxx.o
 .PHONY : src/drivers/network_driver.cxx.o
 
 src/drivers/network_driver.i: src/drivers/network_driver.cxx.i
@@ -920,7 +894,7 @@ src/drivers/network_driver.i: src/drivers/network_driver.cxx.i
 
 # target to preprocess a source file
 src/drivers/network_driver.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/network_driver.cxx.i
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/network_driver.cxx.i
 .PHONY : src/drivers/network_driver.cxx.i
 
 src/drivers/network_driver.s: src/drivers/network_driver.cxx.s
@@ -929,7 +903,7 @@ src/drivers/network_driver.s: src/drivers/network_driver.cxx.s
 
 # target to generate assembly for a file
 src/drivers/network_driver.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/network_driver.cxx.s
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/network_driver.cxx.s
 .PHONY : src/drivers/network_driver.cxx.s
 
 src/drivers/repl_driver.o: src/drivers/repl_driver.cxx.o
@@ -938,7 +912,7 @@ src/drivers/repl_driver.o: src/drivers/repl_driver.cxx.o
 
 # target to build an object file
 src/drivers/repl_driver.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/repl_driver.cxx.o
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/repl_driver.cxx.o
 .PHONY : src/drivers/repl_driver.cxx.o
 
 src/drivers/repl_driver.i: src/drivers/repl_driver.cxx.i
@@ -947,7 +921,7 @@ src/drivers/repl_driver.i: src/drivers/repl_driver.cxx.i
 
 # target to preprocess a source file
 src/drivers/repl_driver.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/repl_driver.cxx.i
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/repl_driver.cxx.i
 .PHONY : src/drivers/repl_driver.cxx.i
 
 src/drivers/repl_driver.s: src/drivers/repl_driver.cxx.s
@@ -956,8 +930,35 @@ src/drivers/repl_driver.s: src/drivers/repl_driver.cxx.s
 
 # target to generate assembly for a file
 src/drivers/repl_driver.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/drivers/repl_driver.cxx.s
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/repl_driver.cxx.s
 .PHONY : src/drivers/repl_driver.cxx.s
+
+src/pkg/node.o: src/pkg/node.cxx.o
+
+.PHONY : src/pkg/node.o
+
+# target to build an object file
+src/pkg/node.cxx.o:
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/pkg/node.cxx.o
+.PHONY : src/pkg/node.cxx.o
+
+src/pkg/node.i: src/pkg/node.cxx.i
+
+.PHONY : src/pkg/node.i
+
+# target to preprocess a source file
+src/pkg/node.cxx.i:
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/pkg/node.cxx.i
+.PHONY : src/pkg/node.cxx.i
+
+src/pkg/node.s: src/pkg/node.cxx.s
+
+.PHONY : src/pkg/node.s
+
+# target to generate assembly for a file
+src/pkg/node.cxx.s:
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/pkg/node.cxx.s
+.PHONY : src/pkg/node.cxx.s
 
 src/pkg/server.o: src/pkg/server.cxx.o
 
@@ -965,7 +966,7 @@ src/pkg/server.o: src/pkg/server.cxx.o
 
 # target to build an object file
 src/pkg/server.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/pkg/server.cxx.o
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/pkg/server.cxx.o
 .PHONY : src/pkg/server.cxx.o
 
 src/pkg/server.i: src/pkg/server.cxx.i
@@ -974,7 +975,7 @@ src/pkg/server.i: src/pkg/server.cxx.i
 
 # target to preprocess a source file
 src/pkg/server.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/pkg/server.cxx.i
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/pkg/server.cxx.i
 .PHONY : src/pkg/server.cxx.i
 
 src/pkg/server.s: src/pkg/server.cxx.s
@@ -983,7 +984,7 @@ src/pkg/server.s: src/pkg/server.cxx.s
 
 # target to generate assembly for a file
 src/pkg/server.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/pkg/server.cxx.s
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/pkg/server.cxx.s
 .PHONY : src/pkg/server.cxx.s
 
 src/pkg/user.o: src/pkg/user.cxx.o
@@ -992,7 +993,7 @@ src/pkg/user.o: src/pkg/user.cxx.o
 
 # target to build an object file
 src/pkg/user.cxx.o:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/pkg/user.cxx.o
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/pkg/user.cxx.o
 .PHONY : src/pkg/user.cxx.o
 
 src/pkg/user.i: src/pkg/user.cxx.i
@@ -1001,7 +1002,7 @@ src/pkg/user.i: src/pkg/user.cxx.i
 
 # target to preprocess a source file
 src/pkg/user.cxx.i:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/pkg/user.cxx.i
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/pkg/user.cxx.i
 .PHONY : src/pkg/user.cxx.i
 
 src/pkg/user.s: src/pkg/user.cxx.s
@@ -1010,7 +1011,7 @@ src/pkg/user.s: src/pkg/user.cxx.s
 
 # target to generate assembly for a file
 src/pkg/user.cxx.s:
-	$(MAKE) -f CMakeFiles/auth_app_lib.dir/build.make CMakeFiles/auth_app_lib.dir/src/pkg/user.cxx.s
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/pkg/user.cxx.s
 .PHONY : src/pkg/user.cxx.s
 
 # Help Target
@@ -1022,21 +1023,20 @@ help:
 	@echo "... install/strip"
 	@echo "... install/local"
 	@echo "... list_install_components"
+	@echo "... server"
+	@echo "... user"
+	@echo "... pswd_lib"
 	@echo "... rebuild_cache"
-	@echo "... check"
-	@echo "... auth_app_lib_shared"
+	@echo "... pswd_lib_shared"
 	@echo "... edit_cache"
 	@echo "... NightlyMemCheck"
-	@echo "... auth_user"
 	@echo "... NightlyTest"
 	@echo "... test"
 	@echo "... doc"
 	@echo "... ContinuousConfigure"
 	@echo "... ContinuousBuild"
-	@echo "... auth_app_lib"
 	@echo "... NightlyConfigure"
 	@echo "... NightlyMemoryCheck"
-	@echo "... auth_server"
 	@echo "... ExperimentalTest"
 	@echo "... ContinuousUpdate"
 	@echo "... NightlyUpdate"
@@ -1061,7 +1061,6 @@ help:
 	@echo "... ContinuousTest"
 	@echo "... ContinuousSubmit"
 	@echo "... doctest_with_main"
-	@echo "... unit_tests"
 	@echo "... src-shared/config.o"
 	@echo "... src-shared/config.i"
 	@echo "... src-shared/config.s"
@@ -1098,6 +1097,9 @@ help:
 	@echo "... src/drivers/repl_driver.o"
 	@echo "... src/drivers/repl_driver.i"
 	@echo "... src/drivers/repl_driver.s"
+	@echo "... src/pkg/node.o"
+	@echo "... src/pkg/node.i"
+	@echo "... src/pkg/node.s"
 	@echo "... src/pkg/server.o"
 	@echo "... src/pkg/server.i"
 	@echo "... src/pkg/server.s"

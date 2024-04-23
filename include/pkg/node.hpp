@@ -14,36 +14,23 @@
 #include "../../include/drivers/crypto_driver.hpp"
 #include "../../include/drivers/db_driver.hpp"
 #include "../../include/drivers/network_driver.hpp"
-#include "../../include-shared/confcig.hpp"
+#include "../../include-shared/config.hpp"
 #include "../../include-shared/keyloaders.hpp"
 
 class NodeClient {
 public:
   NodeClient(NodeConfig node_config);
   void run(int port);
-  bool HandleConnection(std::shared_ptr<NetworkDriver> network_driver,
+  bool HandleServerConnection(std::shared_ptr<NetworkDriver> network_driver,
                         std::shared_ptr<CryptoDriver> crypto_driver);
   std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock>
   HandleKeyExchange(std::shared_ptr<NetworkDriver> network_driver,
                     std::shared_ptr<CryptoDriver> crypto_driver);
-  void
-  HandleLogin(std::shared_ptr<NetworkDriver> network_driver,
-              std::shared_ptr<CryptoDriver> crypto_driver, std::string id,
-              std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys);
-  void HandleRegister(
-      std::shared_ptr<NetworkDriver> network_driver,
-      std::shared_ptr<CryptoDriver> crypto_driver, std::string id,
-      std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys);
 
 private:
-  ServerConfig server_config;
+  NodeConfig node_config;
   std::shared_ptr<CLIDriver> cli_driver;
   std::shared_ptr<DBDriver> db_driver;
 
-  CryptoPP::RSA::PrivateKey RSA_signing_key;
-  CryptoPP::RSA::PublicKey RSA_verification_key;
-
-  void ListenForConnections(int port);
-  void Reset(std::string _);
-  void Users(std::string _);
+  CryptoPP::RSA::PublicKey RSA_server_verification_key;
 };

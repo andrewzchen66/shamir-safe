@@ -9,12 +9,12 @@
 #include <crypto++/nbtheory.h>
 #include <crypto++/osrng.h>
 
-#include "../../include/drivers/cli_driver.hpp"
-#include "../../include/drivers/crypto_driver.hpp"
-#include "../../include/drivers/network_driver.hpp"
 #include "../../include-shared/config.hpp"
 #include "../../include-shared/keyloaders.hpp"
+#include "../../include/drivers/cli_driver.hpp"
+#include "../../include/drivers/crypto_driver.hpp"
 #include "../../include/drivers/db_driver.hpp"
+#include "../../include/drivers/network_driver.hpp"
 
 class UserClient {
 public:
@@ -26,12 +26,24 @@ public:
   HandleServerKeyExchange();
   std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock>
   HandleUserKeyExchange();
-  void HandleLoginOrRegister(std::string input);
-  void DoLoginOrRegister(std::string input);
 
-  void HandleGetOrPostCred(std::string input);
-  CredRow DoGetCred(std::string input);
-  bool DoPostCred(std::string cred_id, std::string url, std::string username, std::string password);
+  void HandleProtocol(std::string input);
+  void
+  SendProtocol(std::string protocol,
+               std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys);
+
+  void DoLogin(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys);
+
+  void
+  DoRegister(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys);
+
+  void
+  DoGetCred(std::string name,
+            std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys);
+  void
+  DoPostCred(std::string cred_id, std::string url, std::string username,
+             std::string password,
+             std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys);
 
 private:
   std::string id;
@@ -45,7 +57,6 @@ private:
   CryptoPP::RSA::PrivateKey RSA_signing_key;
   CryptoPP::RSA::PublicKey RSA_verification_key;
   CryptoPP::RSA::PublicKey RSA_server_verification_key;
-  CryptoPP::RSA::PublicKey RSA_remote_verification_key;
   CryptoPP::SecByteBlock prg_seed;
 
   void

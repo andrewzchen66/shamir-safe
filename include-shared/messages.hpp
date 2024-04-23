@@ -15,6 +15,8 @@
 #include <crypto++/nbtheory.h>
 #include <crypto++/rsa.h>
 
+#include "../include/drivers/db_driver.hpp"
+
 // ================================================
 // MESSAGE TYPES
 // ================================================
@@ -33,7 +35,10 @@ namespace MessageType {
     UserToServer_VerificationKey_Message = 9,
     ServerToUser_IssuedCertificate_Message = 10,
     UserToServer_IssuedCertificate_Message = 11,
-    UserToServer_EncryptedCredential_Message = 12
+    Credential_Message = 12,
+    UserToServer_Query_Message = 13,
+    UserToServer_Protocol_Message = 14,
+    Credential = 15
   };
 };
 MessageType::T get_message_type(std::vector<unsigned char> &data);
@@ -75,6 +80,17 @@ struct Certificate_Message : public Serializable {
   std::string id;
   CryptoPP::RSA::PublicKey verification_key;
   std::string server_signature; // computed on id + verification_key
+
+  void serialize(std::vector<unsigned char> &data);
+  int deserialize(std::vector<unsigned char> &data);
+};
+
+struct Credential {
+  std::string user_id;
+  std::string name;
+  std::string url;
+  std::string username;
+  std::string password;
 
   void serialize(std::vector<unsigned char> &data);
   int deserialize(std::vector<unsigned char> &data);
@@ -157,8 +173,24 @@ struct UserToServer_IssuedCertificate_Message : public Serializable {
   int deserialize(std::vector<unsigned char> &data);
 };
 
-struct UserToServer_Credential_Message : public Serializable {
-  CryptoPP::SecByteBlock cred;
+struct Credential_Message : public Serializable {
+  std::string cred_id;
+  std::string ciphertext;
+  std::string iv;
+
+  void serialize(std::vector<unsigned char> &data);
+  int deserialize(std::vector<unsigned char> &data);
+};
+
+struct UserToServer_Query_Message : public Serializable {
+  std::string cred_id;
+
+  void serialize(std::vector<unsigned char> &data);
+  int deserialize(std::vector<unsigned char> &data);
+};
+
+struct UserToServer_Protocol_Message : public Serializable {
+  std::string protocol;
 
   void serialize(std::vector<unsigned char> &data);
   int deserialize(std::vector<unsigned char> &data);

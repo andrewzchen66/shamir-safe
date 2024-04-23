@@ -15,6 +15,7 @@ public:
   virtual void send(std::vector<unsigned char> data) = 0;
   virtual std::vector<unsigned char> read() = 0;
   virtual std::string get_remote_info() = 0;
+  std::shared_ptr<boost::asio::ip::tcp::socket> get_socket();
 };
 
 class NetworkDriverImpl : public NetworkDriver {
@@ -26,6 +27,7 @@ public:
   void send(std::vector<unsigned char> data);
   std::vector<unsigned char> read();
   std::string get_remote_info();
+  std::shared_ptr<boost::asio::ip::tcp::socket> get_socket();
 
 private:
   int port;
