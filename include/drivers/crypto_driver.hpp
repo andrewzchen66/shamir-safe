@@ -61,4 +61,7 @@ public:
   Integer nowish();
   SecByteBlock png(int numBytes);
   std::string hash(std::string msg);
+
+  std::vector<SecByteBlock> SecretShareBytes(const SecByteBlock& secret, int threshold, int nShares);
+  SecByteBlock SecretRecoverBytes(std::vector<SecByteBlock>& shares, int threshold);
 };

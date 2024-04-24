@@ -70,9 +70,9 @@ void UserClient::run() {
   repl.add_action("register", "register <address> <port>",
                   &UserClient::HandleProtocol);
   repl.add_action("post",
-                  "post <address> <port> <cred_id> <url> <username> <password>",
+                  "post <address> <port> <name> <url> <username> <password>",
                   &UserClient::HandleProtocol);
-  repl.add_action("get", "get <address> <port> <cred_id>",
+  repl.add_action("get", "get <address> <port> <name>",
                   &UserClient::HandleProtocol);
   repl.run();
 }
@@ -128,9 +128,12 @@ UserClient::HandleServerKeyExchange() {
  */
 void UserClient::HandleProtocol(std::string input) {
   // Connect to server and check if we are registering.
-  // try {
-    std::vector<std::string> input_split = string_split(input, ' ');
-
+  std::vector<std::string> input_split = string_split(input, ' ');
+  if (input_split.size() < 3) {
+    this->cli_driver->print_left("invalid number of arguments.");
+    return;
+  }
+  try {
     std::string address = input_split[1];
     int port = std::stoi(input_split[2]);
     this->network_driver->connect(address, port);
@@ -166,17 +169,22 @@ void UserClient::HandleProtocol(std::string input) {
         this->cli_driver->print_left("invalid number of arguments.");
         return;
       }
-      std::string cred_id = input_split[3];
+      std::string name = input_split[3];
       std::string url = input_split[4];
       std::string username = input_split[5];
       std::string password = input_split[6];
 
       this->SendProtocol("post", keys);
-      this->DoPostCred(cred_id, url, username, password, keys);
+      this->DoPostCred(name, url, username, password, keys);
     } else {
       this->cli_driver->print_left("unsupported operation");
     }
-  // }
+
+    std::cout << "disconnecting network driver" << std::endl;
+    network_driver->disconnect();
+  } catch(...) {
+    cli_driver->print_warning("Error occurred in HandleProtocol");
+  }
 }
 
 void UserClient::SendProtocol(
@@ -412,7 +420,14 @@ void UserClient::DoGetCred(std::string name, std::pair<CryptoPP::SecByteBlock, C
   s2u_cred_msg.deserialize(s2u_cred_data);
 
   // decrypt credential
-  std::vector<unsigned char> plaintext = str2chvec(crypto_driver->AES_decrypt(AES_master_key, string_to_byteblock(s2u_cred_msg.iv), s2u_cred_msg.ciphertext));
+  std::vector<unsigned char> plaintext = str2chvec(
+    crypto_driver->AES_decrypt(
+      AES_master_key, 
+      string_to_byteblock(s2u_cred_msg.iv), 
+      s2u_cred_msg.ciphertext
+    )
+  );
+  
   Credential cred;
   cred.deserialize(plaintext);
 

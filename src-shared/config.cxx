@@ -51,6 +51,11 @@ ServerConfig load_server_config(std::string filename) {
       root.get<std::string>("server_signing_key_path", "");
   config.server_verification_key_path =
       root.get<std::string>("server_verification_key_path", "");
-
+  config.server_node_db_path =
+      root.get<std::string>("server_node_db_path", "");
+  config.server_nodes = 
+      root.get<int>("server_nodes");
+  config.server_threshold =
+      root.get<int>("server_threshold");
   return config;
 }

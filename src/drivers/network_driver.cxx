@@ -28,10 +28,6 @@ void NetworkDriverImpl::listen(int port) {
  * @param port Port to conect to.
  */
 void NetworkDriverImpl::connect(std::string address, int port) {
-  if (this->socket->is_open()) {
-    std::cout << "socket is already open" << std::endl;
-  }
-  
   if (address == "localhost")
     address = "127.0.0.1";
   this->socket->connect(
@@ -45,8 +41,6 @@ void NetworkDriverImpl::disconnect() {
   this->socket->shutdown(boost::asio::ip::tcp::socket::shutdown_both);
   this->socket->close();
   this->io_context.stop();
-  
-  std::cout << "socket is open:" << this->socket->is_open() << std::endl;
 }
 
 /**

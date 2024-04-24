@@ -460,7 +460,7 @@ int UserToServer_IssuedCertificate_Message::deserialize(
 }
 
 void Credential::serialize(std::vector<unsigned char> &data) {
-  data.push_back((char)MessageType::Credential_Message);
+  data.push_back((char)MessageType::Credential);
 
   put_string(this->user_id, data);
   put_string(this->name, data);
@@ -471,7 +471,7 @@ void Credential::serialize(std::vector<unsigned char> &data) {
 
 int Credential::deserialize(std::vector<unsigned char> &data) {
   // Check correct message type.
-  assert(data[0] == MessageType::Credential_Message);
+  assert(data[0] == MessageType::Credential);
 
   // Get fields.
   int n = 1;
@@ -520,7 +520,7 @@ int UserToServer_Query_Message::deserialize(std::vector<unsigned char> &data) {
 }
 
 void Credential_Message::serialize(std::vector<unsigned char> &data) {
-  data.push_back((char)MessageType::UserToServer_Query_Message);
+  data.push_back((char)MessageType::Credential_Message);
 
   put_string(this->cred_id, data);
   put_string(this->ciphertext, data);

@@ -13,6 +13,7 @@
 #include "crypto++/queue.h"
 #include "crypto++/pwdbased.h"
 #include "crypto++/blake2.h"
+#include "cryptopp/ida.h"
 
 #include "../../include-shared/constants.hpp"
 #include "../../include-shared/util.hpp"
@@ -367,4 +368,56 @@ std::string CryptoDriver::hash(std::string msg) {
   // Compute hash
   StringSource(msg, true, new HashFilter(hash, new StringSink(encodedHex)));
   return encodedHex;
+}
+
+// Shamir's Secret Sharing Helper Functions: https://groups.google.com/g/cryptopp-users/c/XEKKLCEFH3Y
+
+std::vector<SecByteBlock> CryptoDriver::SecretShareBytes(const SecByteBlock& secret, int threshold, int nShares) {
+    CryptoPP::AutoSeededRandomPool rng;
+
+    CryptoPP::ChannelSwitch *channelSwitch;
+    CryptoPP::ArraySource source( secret.data(), secret.size(), false,new CryptoPP::SecretSharing( rng, threshold, nShares, channelSwitch = new CryptoPP::ChannelSwitch) );
+
+    std::vector<std::ostringstream> shares( nShares );
+    CryptoPP::vector_member_ptrs<CryptoPP::FileSink> sinks( nShares );
+    std::string channel;
+    for (int i = 0; i < nShares; i++)
+    {
+        sinks[i].reset( new CryptoPP::FileSink(shares[i]));
+
+        channel = CryptoPP::WordToString<word32>(i);
+        sinks[i]->Put( (byte *)channel.data(), 4 );
+        channelSwitch->AddRoute( channel,*sinks[i], DEFAULT_CHANNEL);
+    }
+
+    source.PumpAll();
+
+    std::vector<SecByteBlock> ret;
+    for (const std::ostringstream &share : shares)
+    {
+        const std::string & piece = share.str();
+        ret.push_back(string_to_byteblock(piece));
+    }
+    return move(ret);
+}
+
+
+SecByteBlock CryptoDriver::SecretRecoverBytes(std::vector<SecByteBlock>& shares, int threshold) {
+    std::ostringstream out;
+    CryptoPP::SecretRecovery recovery( threshold, new CryptoPP::FileSink(out) );
+
+    CryptoPP::SecByteBlock channel(4);
+    for (int i = 0; i < threshold; i++)
+    {
+        CryptoPP::ArraySource arraySource(shares[i].data(), shares[i].size(), false);
+
+        arraySource.Pump(4);
+        arraySource.Get( channel, 4 );
+        arraySource.Attach( new CryptoPP::ChannelSwitch( recovery, std::string( (char *)channel.begin(), 4) ) );
+
+        arraySource.PumpAll();
+    }
+
+    const auto & secret = out.str();
+    return string_to_byteblock(secret);
 }

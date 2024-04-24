@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.10)
 project(AuthApp VERSION 1.0)
 set(USER_EXEC_NAME user)
 set(SERVER_EXEC_NAME server)
-set(NODE_EXEC_NAME node)
 set(LIBRARY_NAME pswd_lib)
 set(LIBRARY_NAME_SHARED pswd_lib_shared)
 
@@ -38,14 +37,13 @@ target_link_libraries(${LIBRARY_NAME_SHARED} PRIVATE sqlite3)
 target_link_libraries(${LIBRARY_NAME_SHARED} PRIVATE ${Boost_LIBRARIES})
 target_link_libraries(${LIBRARY_NAME_SHARED} PRIVATE ${CURSES_LIBRARIES})
 
-# add student libraries
 set(SOURCES
   src/pkg/server.cxx
   src/pkg/user.cxx
-  src/pkg/node.cxx
   src/drivers/cli_driver.cxx
   src/drivers/crypto_driver.cxx
   src/drivers/db_driver.cxx
+  src/drivers/node_db_driver.cxx
   src/drivers/network_driver.cxx
   src/drivers/repl_driver.cxx)
 add_library(${LIBRARY_NAME} ${SOURCES})

@@ -41,7 +41,7 @@ public:
   DoGetCred(std::string name,
             std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys);
   void
-  DoPostCred(std::string cred_id, std::string url, std::string username,
+  DoPostCred(std::string name, std::string url, std::string username,
              std::string password,
              std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys);
 

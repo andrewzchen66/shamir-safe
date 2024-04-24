@@ -13,6 +13,7 @@
 #include "../../include/drivers/cli_driver.hpp"
 #include "../../include/drivers/crypto_driver.hpp"
 #include "../../include/drivers/db_driver.hpp"
+#include "../../include/drivers/node_db_driver.hpp"
 #include "../../include/drivers/network_driver.hpp"
 #include "../../include-shared/config.hpp"
 #include "../../include-shared/keyloaders.hpp"
@@ -49,11 +50,14 @@ private:
   ServerConfig server_config;
   std::shared_ptr<CLIDriver> cli_driver;
   std::shared_ptr<DBDriver> db_driver;
+  std::vector<std::shared_ptr<NodeDBDriver>> nodes;
 
   CryptoPP::RSA::PrivateKey RSA_signing_key;
   CryptoPP::RSA::PublicKey RSA_verification_key;
 
   void ListenForConnections(int port);
-  void Reset(std::string _);
+  void ResetUsers(std::string _);
+  void ResetCreds(std::string _);
   void Users(std::string _);
+  void Creds(std::string _);
 };

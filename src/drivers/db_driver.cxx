@@ -25,7 +25,7 @@ int DBDriver::close() { return sqlite3_close(this->db); }
 /**
  * Initialize tables for server.
  */
-void DBDriver::init_server_tables() {
+void DBDriver::init_tables() {
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
@@ -40,27 +40,6 @@ void DBDriver::init_server_tables() {
     std::cerr << "Error creating user table: " << err << std::endl;
   } else {
     std::cout << "User table created successfully" << std::endl;
-  }
-
-}
-
-/**
- * Initialize tables for server.
- */
-void DBDriver::init_node_tables() {
-  // Lock db driver.
-  std::unique_lock<std::mutex> lck(this->mtx);
-
-  // Add another table to store user credentials
-  std::string create_cred_table_query = "CREATE TABLE IF NOT EXISTS cred("
-                             "cred_id TEXT PRIMARY KEY NOT NULL, "
-                             "ciphertext TEXT NOT NULL);";
-  char *err;
-  int exit = sqlite3_exec(this->db, create_cred_table_query.c_str(), NULL, 0, &err);
-  if (exit != SQLITE_OK) {
-    std::cerr << "Error creating creds table: " << err << std::endl;
-  } else {
-    std::cout << "Creds table created successfully" << std::endl;
   }
 }
 
@@ -217,108 +196,4 @@ std::vector<std::string> DBDriver::get_users() {
     std::cerr << "Error getting users" << std::endl;
   }
   return users;
-}
-
-/*
-* Finds the credential linked to 
-*/
-CredRow DBDriver::find_cred(std::string cred_id) {
-  // Lock db driver.
-  std::unique_lock<std::mutex> lck(this->mtx);
-
-  std::string find_query =
-      "SELECT cred_id, ciphertext "
-      "FROM cred WHERE cred_id = ?";
-
-  // Prepare statement.
-  sqlite3_stmt *stmt;
-  sqlite3_prepare_v2(this->db, find_query.c_str(), find_query.length(), &stmt,
-                     nullptr);
-  sqlite3_bind_blob(stmt, 1, cred_id.c_str(), cred_id.length(), SQLITE_STATIC);
-
-  // Retreive user.
-  CredRow cred;
-  if (sqlite3_step(stmt) == SQLITE_ROW) {
-    for (int colIndex = 0; colIndex < sqlite3_column_count(stmt); colIndex++) {
-      const void *raw_result;
-      int num_bytes;
-      switch (colIndex) {
-        case 0:
-          raw_result = sqlite3_column_blob(stmt, colIndex);
-          num_bytes = sqlite3_column_bytes(stmt, colIndex);
-          cred.cred_id = std::string((const char *)raw_result, num_bytes);
-        case 1:
-          raw_result = sqlite3_column_blob(stmt, colIndex);
-          num_bytes = sqlite3_column_bytes(stmt, colIndex);
-          cred.ciphertext = std::string((const char *)raw_result, num_bytes);
-          break;
-      }
-    }
-  }
-
-  // Finalize and return.
-  int exit = sqlite3_finalize(stmt);
-  if (exit != SQLITE_OK) {
-    std::cerr << "Error finding credential " << std::endl;
-  }
-  return cred;
-}
-  
-CredRow DBDriver::insert_cred(CredRow cred) {
-  // Lock db driver.
-  std::unique_lock<std::mutex> lck(this->mtx);
-
-  std::string insert_query = "INSERT INTO cred(cred_id, ciphertext)"
-                             " VALUES(?, ?);";
-
-  // Prepare statement.
-  sqlite3_stmt *stmt;
-  sqlite3_prepare_v2(this->db, insert_query.c_str(), insert_query.length(), &stmt, nullptr);
-  sqlite3_bind_blob(stmt, 1, cred.cred_id.c_str(), cred.cred_id.length(), SQLITE_STATIC);
-  sqlite3_bind_blob(stmt, 2, cred.ciphertext.c_str(), cred.ciphertext.length(), SQLITE_STATIC);
-
-  // Run and return.
-  sqlite3_step(stmt);
-  int exit = sqlite3_finalize(stmt);
-  if (exit != SQLITE_OK) {
-    std::cerr << "Error inserting user " << std::endl;
-  }
-
-  return cred;
-}
-
-/*
-* This function probably doesn't serve a useful purpose.
-*/
-std::vector<std::string> DBDriver::get_creds() {
-  // Lock db driver.
-  std::unique_lock<std::mutex> lck(this->mtx);
-
-  std::string creds_query = "SELECT cred_id "
-                            "FROM cred";
-
-  // Prepare statement.
-  sqlite3_stmt *stmt;
-  sqlite3_prepare_v2(this->db, creds_query.c_str(), creds_query.length(), &stmt,
-                     nullptr);
-
-  // Retreive user.
-  CredRow cred;
-  // Retreive user.
-  std::vector<std::string> creds;
-  while (sqlite3_step(stmt) == SQLITE_ROW) {
-    const void *raw_result;
-    int num_bytes;
-    raw_result = sqlite3_column_blob(stmt, 0);
-    num_bytes = sqlite3_column_bytes(stmt, 0);
-    std::string cred_id = std::string((const char *)raw_result, num_bytes);
-    creds.push_back(cred_id);
-  }
-
-  // Finalize and return.
-  int exit = sqlite3_finalize(stmt);
-  if (exit != SQLITE_OK) {
-    std::cerr << "Error getting creds" << std::endl;
-  }
-  return creds;
 }
