@@ -23,7 +23,8 @@
  */
 UserClient::UserClient(std::shared_ptr<NetworkDriver> network_driver,
                        std::shared_ptr<CryptoDriver> crypto_driver,
-                       UserConfig user_config) {
+                       UserConfig user_config)
+{
 
   // Make shared variables.
   this->cli_driver = std::make_shared<CLIDriver>();
@@ -34,16 +35,20 @@ UserClient::UserClient(std::shared_ptr<NetworkDriver> network_driver,
   this->cli_driver->init();
 
   // Load server's key
-  try {
+  try
+  {
     LoadRSAPublicKey(user_config.server_verification_key_path,
                      this->RSA_server_verification_key);
-  } catch (CryptoPP::FileStore::OpenErr) {
+  }
+  catch (CryptoPP::FileStore::OpenErr)
+  {
     this->cli_driver->print_warning("Error loading server keys; exiting");
     throw std::runtime_error("Client could not open server's keys.");
   }
 
   // Load keys
-  try {
+  try
+  {
     LoadRSAPrivateKey(this->user_config.user_signing_key_path,
                       this->RSA_signing_key);
     LoadRSAPublicKey(this->user_config.user_verification_key_path,
@@ -51,10 +56,14 @@ UserClient::UserClient(std::shared_ptr<NetworkDriver> network_driver,
     LoadCertificate(this->user_config.user_certificate_path, this->certificate);
     this->RSA_verification_key = this->certificate.verification_key;
     LoadPRGSeed(this->user_config.user_prg_seed_path, this->prg_seed);
-  } catch (CryptoPP::FileStore::OpenErr) {
+  }
+  catch (CryptoPP::FileStore::OpenErr)
+  {
     this->cli_driver->print_warning("Error loading keys, you may consider "
                                     "registering or logging in again!");
-  } catch (std::runtime_error &_) {
+  }
+  catch (std::runtime_error &_)
+  {
     this->cli_driver->print_warning("Error loading keys, you may consider "
                                     "registering or logging in again!");
   }
@@ -63,7 +72,8 @@ UserClient::UserClient(std::shared_ptr<NetworkDriver> network_driver,
 /**
  * Starts repl.
  */
-void UserClient::run() {
+void UserClient::run()
+{
   REPLDriver<UserClient> repl = REPLDriver<UserClient>(this);
   repl.add_action("login", "login <address> <port>",
                   &UserClient::HandleProtocol);
@@ -87,7 +97,8 @@ void UserClient::run() {
  * @return tuple of AES_key, HMAC_key
  */
 std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock>
-UserClient::HandleServerKeyExchange() {
+UserClient::HandleServerKeyExchange()
+{
   // TODO: implement me!
   auto [dh, private_key, public_key] = crypto_driver->DH_initialize();
 
@@ -126,14 +137,17 @@ UserClient::HandleServerKeyExchange() {
 /**
  * User login or register.
  */
-void UserClient::HandleProtocol(std::string input) {
+void UserClient::HandleProtocol(std::string input)
+{
   // Connect to server and check if we are registering.
   std::vector<std::string> input_split = string_split(input, ' ');
-  if (input_split.size() < 3) {
+  if (input_split.size() < 3)
+  {
     this->cli_driver->print_left("invalid number of arguments.");
     return;
   }
-  try {
+  try
+  {
     std::string address = input_split[1];
     int port = std::stoi(input_split[2]);
     this->network_driver->connect(address, port);
@@ -141,22 +155,30 @@ void UserClient::HandleProtocol(std::string input) {
     std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys =
         HandleServerKeyExchange();
 
-    if (input_split[0] == "register") {
-      if (input_split.size() != 3) {
+    if (input_split[0] == "register")
+    {
+      if (input_split.size() != 3)
+      {
         this->cli_driver->print_left("invalid number of arguments.");
         return;
       }
       this->SendProtocol("register", keys);
       this->DoRegister(keys);
-    } else if (input_split[0] == "login") {
-      if (input_split.size() != 3) {
+    }
+    else if (input_split[0] == "login")
+    {
+      if (input_split.size() != 3)
+      {
         this->cli_driver->print_left("invalid number of arguments.");
         return;
       }
       this->SendProtocol("login", keys);
       this->DoLogin(keys);
-    } else if (input_split[0] == "get") {
-      if (input_split.size() != 4) {
+    }
+    else if (input_split[0] == "get")
+    {
+      if (input_split.size() != 4)
+      {
         this->cli_driver->print_left("invalid number of arguments.");
         return;
       }
@@ -164,8 +186,11 @@ void UserClient::HandleProtocol(std::string input) {
 
       this->SendProtocol("get", keys);
       this->DoGetCred(cred_id, keys);
-    } else if (input_split[0] == "post") {
-      if (input_split.size() != 7) {
+    }
+    else if (input_split[0] == "post")
+    {
+      if (input_split.size() != 7)
+      {
         this->cli_driver->print_left("invalid number of arguments.");
         return;
       }
@@ -176,20 +201,25 @@ void UserClient::HandleProtocol(std::string input) {
 
       this->SendProtocol("post", keys);
       this->DoPostCred(name, url, username, password, keys);
-    } else {
+    }
+    else
+    {
       this->cli_driver->print_left("unsupported operation");
     }
 
     std::cout << "disconnecting network driver" << std::endl;
     network_driver->disconnect();
-  } catch(...) {
+  }
+  catch (...)
+  {
     cli_driver->print_warning("Error occurred in HandleProtocol");
   }
 }
 
 void UserClient::SendProtocol(
     std::string protocol,
-    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
+    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys)
+{
 
   UserToServer_Protocol_Message u2s_protocol_msg;
   u2s_protocol_msg.protocol = protocol;
@@ -214,7 +244,8 @@ void UserClient::SendProtocol(
  * Remember to store RSA keys in this->RSA_signing_key and
  * this->RSA_verification_key
  */
-void UserClient::DoRegister(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
+void UserClient::DoRegister(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys)
+{
   // TODO: implement me!
 
   // Handle server key exchange; get AES and HMAC keys
@@ -233,9 +264,12 @@ void UserClient::DoRegister(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteB
   // Recieves salt from server
   ServerToUser_Salt_Message server_salt_msg;
   std::vector<unsigned char> server_salt_msg_enc;
-  try {
+  try
+  {
     server_salt_msg_enc = network_driver->read();
-  } catch (const std::runtime_error e) {
+  }
+  catch (const std::runtime_error e)
+  {
     std::cout << "Something went wrong during login/registration." << std::endl;
     return;
   }
@@ -292,7 +326,7 @@ void UserClient::DoRegister(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteB
       crypto_driver->encrypt_and_tag(aes_key, hmac_key, &user_vk_msg);
   network_driver->send(user_vk_msg_enc);
 
-  // recieve and store certificate from server
+  // receive and store certificate from server
   ServerToUser_IssuedCertificate_Message server_cert_msg;
   std::vector<unsigned char> server_cert_msg_enc = network_driver->read();
   auto [server_cert_msg_vec, server_cert_valid] =
@@ -313,7 +347,8 @@ void UserClient::DoRegister(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteB
   SavePRGSeed(this->user_config.user_prg_seed_path, this->prg_seed);
 }
 
-void UserClient::DoLogin(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
+void UserClient::DoLogin(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys)
+{
   // TODO: implement me!
 
   // Handle server key exchange; get AES and HMAC keys
@@ -332,14 +367,17 @@ void UserClient::DoLogin(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBloc
   // Recieves salt from server
   ServerToUser_Salt_Message server_salt_msg;
   std::vector<unsigned char> server_salt_msg_enc;
-  try {
+  try
+  {
     server_salt_msg_enc = network_driver->read();
-  } catch (const std::runtime_error e) {
+  }
+  catch (const std::runtime_error e)
+  {
     std::cout << "Something went wrong during login/registration." << std::endl;
     return;
   }
 
-  auto [server_salt_msg_vec, server_salt_valid] = 
+  auto [server_salt_msg_vec, server_salt_valid] =
       crypto_driver->decrypt_and_verify(aes_key, hmac_key, server_salt_msg_enc);
   server_salt_msg.deserialize(server_salt_msg_vec);
 
@@ -398,7 +436,8 @@ void UserClient::DoLogin(std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBloc
   SavePRGSeed(this->user_config.user_prg_seed_path, this->prg_seed);
 }
 
-void UserClient::DoGetCred(std::string name, std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
+void UserClient::DoGetCred(std::string name, std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys)
+{
   // name: refers to the name given to the credential i.e. google, fidelity, ipad etc.
   SecByteBlock AES_master_key = crypto_driver->AES_generate_master_key(
       this->user_config.user_username, this->user_config.user_password);
@@ -414,20 +453,19 @@ void UserClient::DoGetCred(std::string name, std::pair<CryptoPP::SecByteBlock, C
   Credential_Message s2u_cred_msg;
   std::vector<unsigned char> s2u_cred_enc_vec = network_driver->read();
   auto [s2u_cred_data, s2u_cred_valid] = crypto_driver->decrypt_and_verify(keys.first, keys.second, s2u_cred_enc_vec);
-  if (!s2u_cred_valid) {
+  if (!s2u_cred_valid)
+  {
     throw std::runtime_error("Decrpyption/Verification not valid in HandleConnection");
   }
   s2u_cred_msg.deserialize(s2u_cred_data);
 
   // decrypt credential
   std::vector<unsigned char> plaintext = str2chvec(
-    crypto_driver->AES_decrypt(
-      AES_master_key, 
-      string_to_byteblock(s2u_cred_msg.iv), 
-      s2u_cred_msg.ciphertext
-    )
-  );
-  
+      crypto_driver->AES_decrypt(
+          AES_master_key,
+          string_to_byteblock(s2u_cred_msg.iv),
+          s2u_cred_msg.ciphertext));
+
   Credential cred;
   cred.deserialize(plaintext);
 
@@ -443,7 +481,8 @@ void UserClient::DoGetCred(std::string name, std::pair<CryptoPP::SecByteBlock, C
  */
 
 void UserClient::DoPostCred(std::string name, std::string url,
-                            std::string username, std::string password, std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
+                            std::string username, std::string password, std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys)
+{
   // TODO
   // What is the best way for server to verify user's identity here?
   // Would verifying certificate work? In handleuser, the certificate is
@@ -460,7 +499,7 @@ void UserClient::DoPostCred(std::string name, std::string url,
   cred.url = url;
   cred.username = username;
   cred.password = password;
-  
+
   std::vector<unsigned char> plaintext;
   cred.serialize(plaintext);
 

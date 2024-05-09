@@ -13,7 +13,8 @@ NodeDBDriver::NodeDBDriver() {}
 /**
  * Open a particular db file.
  */
-int NodeDBDriver::open(std::string dbpath) {
+int NodeDBDriver::open(std::string dbpath)
+{
   return sqlite3_open(dbpath.c_str(), &this->db);
 }
 
@@ -25,7 +26,8 @@ int NodeDBDriver::close() { return sqlite3_close(this->db); }
 /**
  * Initialize tables for server.
  */
-void NodeDBDriver::init_tables() {
+void NodeDBDriver::init_tables()
+{
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
@@ -37,9 +39,12 @@ void NodeDBDriver::init_tables() {
   char *err;
   int exit =
       sqlite3_exec(this->db, create_cred_table_query.c_str(), NULL, 0, &err);
-  if (exit != SQLITE_OK) {
+  if (exit != SQLITE_OK)
+  {
     std::cerr << "Error creating creds table: " << err << std::endl;
-  } else {
+  }
+  else
+  {
     std::cout << "Creds table created successfully" << std::endl;
   }
 }
@@ -47,7 +52,8 @@ void NodeDBDriver::init_tables() {
 /**
  * Reset tables by dropping all.
  */
-void NodeDBDriver::reset_tables() {
+void NodeDBDriver::reset_tables()
+{
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
@@ -57,28 +63,32 @@ void NodeDBDriver::reset_tables() {
 
   sqlite3_stmt *stmt;
   // For each table, drop it
-  for (std::string table : table_names) {
+  for (std::string table : table_names)
+  {
     std::string delete_query = "DELETE FROM " + table;
     sqlite3_prepare_v2(this->db, delete_query.c_str(), delete_query.length(),
                        &stmt, nullptr);
     char *err;
     int exit = sqlite3_exec(this->db, delete_query.c_str(), NULL, 0, &err);
-    if (exit != SQLITE_OK) {
+    if (exit != SQLITE_OK)
+    {
       std::cerr << "Error deleting table entries: " << err << std::endl;
     }
   }
 
   // Finalize and return.
   int exit = sqlite3_finalize(stmt);
-  if (exit != SQLITE_OK) {
+  if (exit != SQLITE_OK)
+  {
     std::cerr << "Error resetting tables" << std::endl;
   }
 }
 
 /*
- * Finds the credential linked to
+ * Finds the credential linked to a given cred_id
  */
-CredRow NodeDBDriver::find_cred(std::string cred_id) {
+CredRow NodeDBDriver::find_cred(std::string cred_id)
+{
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
@@ -93,11 +103,14 @@ CredRow NodeDBDriver::find_cred(std::string cred_id) {
 
   // Retreive cred.
   CredRow cred;
-  if (sqlite3_step(stmt) == SQLITE_ROW) {
-    for (int colIndex = 0; colIndex < sqlite3_column_count(stmt); colIndex++) {
+  if (sqlite3_step(stmt) == SQLITE_ROW)
+  {
+    for (int colIndex = 0; colIndex < sqlite3_column_count(stmt); colIndex++)
+    {
       const void *raw_result;
       int num_bytes;
-      switch (colIndex) {
+      switch (colIndex)
+      {
       case 0:
         raw_result = sqlite3_column_blob(stmt, colIndex);
         num_bytes = sqlite3_column_bytes(stmt, colIndex);
@@ -118,13 +131,15 @@ CredRow NodeDBDriver::find_cred(std::string cred_id) {
 
   // Finalize and return.
   int exit = sqlite3_finalize(stmt);
-  if (exit != SQLITE_OK) {
+  if (exit != SQLITE_OK)
+  {
     std::cerr << "Error finding credential " << std::endl;
   }
   return cred;
 }
 
-CredRow NodeDBDriver::insert_cred(CredRow cred) {
+CredRow NodeDBDriver::insert_cred(CredRow cred)
+{
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
@@ -144,10 +159,10 @@ CredRow NodeDBDriver::insert_cred(CredRow cred) {
   // Run and return.
   sqlite3_step(stmt);
   int exit = sqlite3_finalize(stmt);
-  if (exit != SQLITE_OK) {
+  if (exit != SQLITE_OK)
+  {
     std::cout << "Error inserting cred " << std::endl;
   }
-  
 
   return cred;
 }
@@ -155,7 +170,8 @@ CredRow NodeDBDriver::insert_cred(CredRow cred) {
 /*
  * This function probably doesn't serve a useful purpose.
  */
-std::vector<std::string> NodeDBDriver::get_creds() {
+std::vector<std::string> NodeDBDriver::get_creds()
+{
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
@@ -169,7 +185,8 @@ std::vector<std::string> NodeDBDriver::get_creds() {
 
   CredRow cred;
   std::vector<std::string> creds;
-  while (sqlite3_step(stmt) == SQLITE_ROW) {
+  while (sqlite3_step(stmt) == SQLITE_ROW)
+  {
     const void *raw_result;
     int num_bytes;
     raw_result = sqlite3_column_blob(stmt, 0);
@@ -180,7 +197,8 @@ std::vector<std::string> NodeDBDriver::get_creds() {
 
   // Finalize and return.
   int exit = sqlite3_finalize(stmt);
-  if (exit != SQLITE_OK) {
+  if (exit != SQLITE_OK)
+  {
     std::cerr << "Error getting creds" << std::endl;
   }
   return creds;

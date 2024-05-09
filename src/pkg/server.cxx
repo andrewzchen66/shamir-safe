@@ -24,7 +24,8 @@
 /**
  * Constructor
  */
-ServerClient::ServerClient(ServerConfig server_config) {
+ServerClient::ServerClient(ServerConfig server_config)
+{
   // save server_config
   this->server_config = server_config;
 
@@ -39,7 +40,8 @@ ServerClient::ServerClient(ServerConfig server_config) {
 
   // Initialize other nodes
   this->nodes.resize(server_config.server_nodes);
-  for (int i = 0; i < server_config.server_nodes; i++) {
+  for (int i = 0; i < server_config.server_nodes; i++)
+  {
     std::string node_db_path = server_config.server_node_db_path + "/node" + std::to_string(i) + ".db";
     this->nodes[i] = std::make_shared<NodeDBDriver>();
     this->nodes[i]->open(node_db_path);
@@ -49,12 +51,15 @@ ServerClient::ServerClient(ServerConfig server_config) {
   }
 
   // Load server keys.
-  try {
+  try
+  {
     LoadRSAPrivateKey(server_config.server_signing_key_path,
                       this->RSA_signing_key);
     LoadRSAPublicKey(server_config.server_verification_key_path,
                      this->RSA_verification_key);
-  } catch (CryptoPP::FileStore::OpenErr) {
+  }
+  catch (CryptoPP::FileStore::OpenErr)
+  {
     this->cli_driver->print_warning(
         "Could not find server keys, generating them instead.");
     CryptoDriver crypto_driver;
@@ -72,7 +77,8 @@ ServerClient::ServerClient(ServerConfig server_config) {
  * Run the server on the given port. First initializes the CLI and database,
  * then starts listening for connections.
  */
-void ServerClient::run(int port) {
+void ServerClient::run(int port)
+{
   // Start listener thread
   std::thread listener_thread(&ServerClient::ListenForConnections, this, port);
   listener_thread.detach();
@@ -90,7 +96,8 @@ void ServerClient::run(int port) {
  * Reset user database
  *
  */
-void ServerClient::ResetUsers(std::string _) {
+void ServerClient::ResetUsers(std::string _)
+{
   this->cli_driver->print_info("Erasing users!");
   this->db_driver->reset_tables();
 }
@@ -99,9 +106,11 @@ void ServerClient::ResetUsers(std::string _) {
  * Reset nodes database
  *
  */
-void ServerClient::ResetCreds(std::string _) {
+void ServerClient::ResetCreds(std::string _)
+{
   this->cli_driver->print_info("Erasing nodes!");
-  for (int i = 0; i < this->server_config.server_nodes; i++) {
+  for (int i = 0; i < this->server_config.server_nodes; i++)
+  {
     this->nodes[i]->reset_tables();
   }
 }
@@ -109,14 +118,17 @@ void ServerClient::ResetCreds(std::string _) {
 /**
  * Prints all usernames
  */
-void ServerClient::Users(std::string _) {
+void ServerClient::Users(std::string _)
+{
   this->cli_driver->print_info("Printing users!");
   std::vector<std::string> usernames = this->db_driver->get_users();
-  if (usernames.size() == 0) {
+  if (usernames.size() == 0)
+  {
     this->cli_driver->print_info("No registered users!");
     return;
   }
-  for (std::string username : usernames) {
+  for (std::string username : usernames)
+  {
     this->cli_driver->print_info(username);
   }
 }
@@ -124,15 +136,19 @@ void ServerClient::Users(std::string _) {
 /**
  * Prints all nodes
  */
-void ServerClient::Creds(std::string _) {
+void ServerClient::Creds(std::string _)
+{
   this->cli_driver->print_info("Printing credentials!");
-  for (int i = 0; i < this->server_config.server_nodes; i++) {
+  for (int i = 0; i < this->server_config.server_nodes; i++)
+  {
     std::cout << "Credentials for node: " << i << std::endl;
     std::vector<std::string> creds = this->nodes[i]->get_creds();
-    if (creds.size() == 0) {
+    if (creds.size() == 0)
+    {
       this->cli_driver->print_info("No stored credentials!");
     }
-    for (std::string cred : creds) {
+    for (std::string cred : creds)
+    {
       this->cli_driver->print_info(cred);
     }
   }
@@ -141,8 +157,10 @@ void ServerClient::Creds(std::string _) {
 /**
  * @brief This is the logic for the listener thread
  */
-void ServerClient::ListenForConnections(int port) {
-  while (1) {
+void ServerClient::ListenForConnections(int port)
+{
+  while (1)
+  {
     // Create new network driver and crypto driver for this connection
     std::shared_ptr<NetworkDriver> network_driver =
         std::make_shared<NetworkDriverImpl>();
@@ -164,49 +182,60 @@ void ServerClient::ListenForConnections(int port) {
  */
 bool ServerClient::HandleConnection(
     std::shared_ptr<NetworkDriver> network_driver,
-    std::shared_ptr<CryptoDriver> crypto_driver) {
+    std::shared_ptr<CryptoDriver> crypto_driver)
+{
   // try {
-    // TODO: implement me!
-    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys =
-        HandleKeyExchange(network_driver, crypto_driver);
+  // TODO: implement me!
+  std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys =
+      HandleKeyExchange(network_driver, crypto_driver);
 
-    // Receive protocol msg from user that defines what operation is being
-    // requested from the server
-    UserToServer_Protocol_Message u2s_protocol_msg;
-    std::vector<unsigned char> u2s_protocol_enc_vec = network_driver->read();
-    auto [u2s_protocol_data, u2s_protocol_valid] =
-        crypto_driver->decrypt_and_verify(keys.first, keys.second,
-                                          u2s_protocol_enc_vec);
-    if (!u2s_protocol_valid)
+  // Receive protocol msg from user that defines what operation is being
+  // requested from the server
+  UserToServer_Protocol_Message u2s_protocol_msg;
+  std::vector<unsigned char> u2s_protocol_enc_vec = network_driver->read();
+  auto [u2s_protocol_data, u2s_protocol_valid] =
+      crypto_driver->decrypt_and_verify(keys.first, keys.second,
+                                        u2s_protocol_enc_vec);
+  if (!u2s_protocol_valid)
+    throw std::runtime_error(
+        "Decrpyption/Verification not valid in HandleConnection");
+  u2s_protocol_msg.deserialize(u2s_protocol_data);
+
+  if (u2s_protocol_msg.protocol == "login" || u2s_protocol_msg.protocol == "register")
+  {
+    UserToServer_IDPrompt_Message msg;
+    std::vector<unsigned char> raw_data = network_driver->read();
+    auto [msg_data, valid] =
+        crypto_driver->decrypt_and_verify(keys.first, keys.second, raw_data);
+    if (!valid)
       throw std::runtime_error(
-          "Decrpyption/Verification not valid in HandleConnection");
-    u2s_protocol_msg.deserialize(u2s_protocol_data);
+          "Decryption/Verification not valid in HandleConnection");
 
-    if (u2s_protocol_msg.protocol == "login" || u2s_protocol_msg.protocol == "register") {
-      UserToServer_IDPrompt_Message msg;
-      std::vector<unsigned char> raw_data = network_driver->read();
-      auto [msg_data, valid] =
-          crypto_driver->decrypt_and_verify(keys.first, keys.second, raw_data);
-      if (!valid)
-        throw std::runtime_error(
-            "Decrpyption/Verification not valid in HandleConnection");
-
-      msg.deserialize(msg_data);
-      if (msg.new_user) {
-        HandleRegister(network_driver, crypto_driver, msg.id, keys);
-      } else {
-        HandleLogin(network_driver, crypto_driver, msg.id, keys);
-      }
-    } else if (u2s_protocol_msg.protocol == "get") {
-      HandleGetCred(network_driver, crypto_driver, keys);
-    } else if (u2s_protocol_msg.protocol == "post") {
-      HandlePostCred(network_driver, crypto_driver, keys);
-    } else {
-      this->cli_driver->print_warning("Unsupported operation");
+    msg.deserialize(msg_data);
+    if (msg.new_user)
+    {
+      HandleRegister(network_driver, crypto_driver, msg.id, keys);
     }
-    std::cout << "disconnecting network driver" << std::endl;
-    network_driver->disconnect();
-    return true;
+    else
+    {
+      HandleLogin(network_driver, crypto_driver, msg.id, keys);
+    }
+  }
+  else if (u2s_protocol_msg.protocol == "get")
+  {
+    HandleGetCred(network_driver, crypto_driver, keys);
+  }
+  else if (u2s_protocol_msg.protocol == "post")
+  {
+    HandlePostCred(network_driver, crypto_driver, keys);
+  }
+  else
+  {
+    this->cli_driver->print_warning("Unsupported operation");
+  }
+  std::cout << "disconnecting network driver" << std::endl;
+  network_driver->disconnect();
+  return true;
   // } catch (...) {
   //   this->cli_driver->print_warning("Connection threw an error");
   //   network_driver->disconnect();
@@ -223,7 +252,8 @@ bool ServerClient::HandleConnection(
  */
 std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock>
 ServerClient::HandleKeyExchange(std::shared_ptr<NetworkDriver> network_driver,
-                                std::shared_ptr<CryptoDriver> crypto_driver) {
+                                std::shared_ptr<CryptoDriver> crypto_driver)
+{
   // TODO: implement me!
   // Receive user's public value
   UserToServer_DHPublicValue_Message user_pub_val_msg;
@@ -268,7 +298,8 @@ ServerClient::HandleKeyExchange(std::shared_ptr<NetworkDriver> network_driver,
 void ServerClient::HandleLogin(
     std::shared_ptr<NetworkDriver> network_driver,
     std::shared_ptr<CryptoDriver> crypto_driver, std::string id,
-    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
+    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys)
+{
   // TODO: implement me!
   // Find user in DB
   UserRow user_row = this->db_driver->find_user(id);
@@ -300,7 +331,8 @@ void ServerClient::HandleLogin(
 
   // Try all possible peppers
   bool match = false;
-  for (int i = 0; i < std::pow(2, 8 * PEPPER_SIZE); i++) {
+  for (int i = 0; i < std::pow(2, 8 * PEPPER_SIZE); i++)
+  {
     CryptoPP::Integer pepper(i);
     std::string hash_with_peppper = crypto_driver->hash(
         user_hspw_msg.hspw + byteblock_to_string(integer_to_byteblock(pepper)));
@@ -327,17 +359,20 @@ void ServerClient::HandleLogin(
   SecByteBlock time_now;
   SecByteBlock server_prf_val;
   CryptoPP::Integer nowish = crypto_driver->nowish();
-  for (int i = 0; i < 60; i++) {
+  for (int i = 0; i < 60; i++)
+  {
     time_now = integer_to_byteblock(nowish - i);
     server_prf_val = crypto_driver->prg(string_to_byteblock(user_row.prg_seed),
                                         time_now, PRG_SIZE);
     if (byteblock_to_string(user_2fa_msg.value) ==
-        byteblock_to_string(server_prf_val)) {
+        byteblock_to_string(server_prf_val))
+    {
       valid2fa = true;
     }
   }
 
-  if (!valid2fa) {
+  if (!valid2fa)
+  {
     std::cout << "error: 2fa failed during login" << std::endl;
     throw std::runtime_error("2fa failed during login");
   }
@@ -350,7 +385,7 @@ void ServerClient::HandleLogin(
 
   if (!vk_valid)
     throw std::runtime_error(
-        "Verification Key Decrpyption/Verification not valid in HandleLogin");
+        "Verification Key Decryption/Verification not valid in HandleLogin");
 
   user_vk_msg.deserialize(user_vk_msg_vec);
 
@@ -387,12 +422,14 @@ void ServerClient::HandleLogin(
 void ServerClient::HandleRegister(
     std::shared_ptr<NetworkDriver> network_driver,
     std::shared_ptr<CryptoDriver> crypto_driver, std::string id,
-    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
+    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys)
+{
   // TODO: implement me!
 
   UserRow user_row = this->db_driver->find_user(id);
 
-  if (user_row.user_id != "") {
+  if (user_row.user_id != "")
+  {
     std::cout << "error: user ID already exists" << std::endl;
     throw std::runtime_error("User ID already exists in DB");
   }
@@ -488,18 +525,22 @@ void ServerClient::HandleRegister(
 
   std::cout << "log: user successfully registered" << std::endl;
 }
-
+/**
+ * Handles user retrieval of a previously saved credential
+ */
 void ServerClient::HandleGetCred(
     std::shared_ptr<NetworkDriver> network_driver,
     std::shared_ptr<CryptoDriver> crypto_driver,
-    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
-  
+    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys)
+{
+
   // receive query message from user
   UserToServer_Query_Message u2s_query_msg;
   std::vector<unsigned char> u2s_query_enc_vec = network_driver->read();
   auto [u2s_query_data, u2s_query_valid] = crypto_driver->decrypt_and_verify(keys.first, keys.second, u2s_query_enc_vec);
-  
-  if (!u2s_query_valid) {
+
+  if (!u2s_query_valid)
+  {
     throw std::runtime_error("Invalid decryption for query message in HandleGetCred");
   }
   u2s_query_msg.deserialize(u2s_query_data);
@@ -507,24 +548,42 @@ void ServerClient::HandleGetCred(
   // get all shares corresponding to query from nodes
   std::string iv;
   std::vector<SecByteBlock> shares;
-  for (int i = 0; i < server_config.server_nodes; i++) {
+  for (int i = 0; i < server_config.server_nodes; i++)
+  {
     CredRow cred = this->nodes[i]->find_cred(u2s_query_msg.cred_id);
-    if (cred.cred_id == "") {
+    if (cred.cred_id == "")
+    {
       std::cerr << "invalid credential: credential_id not found in database" << std::endl;
-    } else {
+    }
+    else
+    {
       shares.push_back(string_to_byteblock(cred.ciphertext));
       iv = cred.iv;
     }
   }
 
-  // send recovered ciphertext + iv back to user
-  if (shares.size() < this->server_config.server_threshold) {
+  // Verify threshold is met
+  if (shares.size() < this->server_config.server_threshold)
+  {
     std::cout << "Not enough shares found to recover" << std::endl;
     throw std::runtime_error("Not enough shares found to recover");
   }
 
+  // TODO: Verify the shares using the stored commitments
+  std::vector<SecByteBlock> commitments;
+  for (int i = 0; i < shares, shares++)
+  {
+    if (!crypto_driver->VerifySecretShare(shares[i]), commitments)
+    {
+      std::cout << "Verification failed for share " + to_string(i) << std::endl;
+      throw std::runtime_error("Verification failed for share " + to_string(i));
+    }
+  }
+
+  // Recover the ciphertext from the shares
   SecByteBlock recovered_ciphertext = crypto_driver->SecretRecoverBytes(shares, this->server_config.server_threshold);
 
+  // send recovered ciphertext + iv back to user
   Credential_Message s2u_cred_msg;
   s2u_cred_msg.cred_id = u2s_query_msg.cred_id;
   s2u_cred_msg.iv = iv;
@@ -536,33 +595,36 @@ void ServerClient::HandleGetCred(
 void ServerClient::HandlePostCred(
     std::shared_ptr<NetworkDriver> network_driver,
     std::shared_ptr<CryptoDriver> crypto_driver,
-    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys) {
+    std::pair<CryptoPP::SecByteBlock, CryptoPP::SecByteBlock> keys)
+{
 
   // receive cred from user
   Credential_Message u2s_cred_msg;
   std::vector<unsigned char> u2s_cred_enc_vec = network_driver->read();
   auto [u2s_cred_data, u2s_cred_valid] = crypto_driver->decrypt_and_verify(keys.first, keys.second, u2s_cred_enc_vec);
-  
-  if (!u2s_cred_valid) {
+
+  if (!u2s_cred_valid)
+  {
     throw std::runtime_error("Invalid decryption for credential message in HandlePostCred");
   }
   u2s_cred_msg.deserialize(u2s_cred_data);
 
   CredRow cred_row = this->nodes[0]->find_cred(u2s_cred_msg.cred_id);
-  if (cred_row.cred_id != "") {
+  if (cred_row.cred_id != "")
+  {
     std::cout << "error: cred ID already exists" << std::endl;
     throw std::runtime_error("cred ID already exists in DB");
   }
 
   // break apart into shares
   std::vector<SecByteBlock> shares = crypto_driver->SecretShareBytes(
-    string_to_byteblock(u2s_cred_msg.ciphertext), 
-    this->server_config.server_threshold, 
-    this->server_config.server_nodes
-  );
+      string_to_byteblock(u2s_cred_msg.ciphertext),
+      this->server_config.server_threshold,
+      this->server_config.server_nodes);
 
   // store shares into node dbs
-  for (int i  = 0; i < this->server_config.server_nodes; i++) {
+  for (int i = 0; i < this->server_config.server_nodes; i++)
+  {
     CredRow cred;
     cred.cred_id = u2s_cred_msg.cred_id;
     cred.ciphertext = byteblock_to_string(shares[i]);
