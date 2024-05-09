@@ -638,6 +638,16 @@ void ServerClient::HandlePostCred(
       this->server_config.server_threshold,
       this->server_config.server_nodes);
 
+  // store cred and commitments into server_cred_db
+  ServerCredRow server_cred;
+  server_cred.cred_id = u2s_cred_msg.cred_id;
+  for (int i = 0; i < this->server_config.server_nodes; i++)
+  {
+    server_cred.commitments.push_back(byteblock_to_string(commitments[i]));
+    server_cred.node_ids.push_back(i);
+  }
+  this->db_driver->insert_cred(server_cred);
+
   // store shares into node dbs
   for (int i = 0; i < this->server_config.server_nodes; i++)
   {
