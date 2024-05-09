@@ -4,7 +4,8 @@
 #include <iostream>
 #include <string>
 
-struct UserConfig {
+struct UserConfig
+{
   std::string user_username;
   std::string user_password;
   std::string user_signing_key_path;
@@ -15,10 +16,12 @@ struct UserConfig {
 };
 UserConfig load_user_config(std::string filename);
 
-struct ServerConfig {
+struct ServerConfig
+{
   std::string server_db_path;
   std::string server_signing_key_path;
   std::string server_verification_key_path;
+  std::string server_cred_db_path;
   std::string server_node_db_path;
   int server_nodes;
   int server_threshold;

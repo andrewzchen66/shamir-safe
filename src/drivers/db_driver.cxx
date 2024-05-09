@@ -13,7 +13,8 @@ DBDriver::DBDriver() {}
 /**
  * Open a particular db file.
  */
-int DBDriver::open(std::string dbpath) {
+int DBDriver::open(std::string dbpath)
+{
   return sqlite3_open(dbpath.c_str(), &this->db);
 }
 
@@ -25,20 +26,24 @@ int DBDriver::close() { return sqlite3_close(this->db); }
 /**
  * Initialize tables for server.
  */
-void DBDriver::init_tables() {
+void DBDriver::init_tables()
+{
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
   std::string create_user_table_query = "CREATE TABLE IF NOT EXISTS user("
-                             "user_id TEXT PRIMARY KEY NOT NULL, "
-                             "password_hash TEXT NOT NULL, "
-                             "password_salt TEXT NOT NULL, "
-                             "prg_seed TEXT NOT NULL);";
+                                        "user_id TEXT PRIMARY KEY NOT NULL, "
+                                        "password_hash TEXT NOT NULL, "
+                                        "password_salt TEXT NOT NULL, "
+                                        "prg_seed TEXT NOT NULL);";
   char *err;
   int exit = sqlite3_exec(this->db, create_user_table_query.c_str(), NULL, 0, &err);
-  if (exit != SQLITE_OK) {
+  if (exit != SQLITE_OK)
+  {
     std::cerr << "Error creating user table: " << err << std::endl;
-  } else {
+  }
+  else
+  {
     std::cout << "User table created successfully" << std::endl;
   }
 }
@@ -46,7 +51,8 @@ void DBDriver::init_tables() {
 /**
  * Reset tables by dropping all.
  */
-void DBDriver::reset_tables() {
+void DBDriver::reset_tables()
+{
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
@@ -56,20 +62,23 @@ void DBDriver::reset_tables() {
 
   sqlite3_stmt *stmt;
   // For each table, drop it
-  for (std::string table : table_names) {
+  for (std::string table : table_names)
+  {
     std::string delete_query = "DELETE FROM " + table;
     sqlite3_prepare_v2(this->db, delete_query.c_str(), delete_query.length(),
                        &stmt, nullptr);
     char *err;
     int exit = sqlite3_exec(this->db, delete_query.c_str(), NULL, 0, &err);
-    if (exit != SQLITE_OK) {
+    if (exit != SQLITE_OK)
+    {
       std::cerr << "Error deleting table entries: " << err << std::endl;
     }
   }
 
   // Finalize and return.
   int exit = sqlite3_finalize(stmt);
-  if (exit != SQLITE_OK) {
+  if (exit != SQLITE_OK)
+  {
     std::cerr << "Error resetting tables" << std::endl;
   }
 }
@@ -77,7 +86,8 @@ void DBDriver::reset_tables() {
 /**
  * Find the given user. Returns an empty user if none was found.
  */
-UserRow DBDriver::find_user(std::string user_id) {
+UserRow DBDriver::find_user(std::string user_id)
+{
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
@@ -93,11 +103,14 @@ UserRow DBDriver::find_user(std::string user_id) {
 
   // Retreive user.
   UserRow user;
-  if (sqlite3_step(stmt) == SQLITE_ROW) {
-    for (int colIndex = 0; colIndex < sqlite3_column_count(stmt); colIndex++) {
+  if (sqlite3_step(stmt) == SQLITE_ROW)
+  {
+    for (int colIndex = 0; colIndex < sqlite3_column_count(stmt); colIndex++)
+    {
       const void *raw_result;
       int num_bytes;
-      switch (colIndex) {
+      switch (colIndex)
+      {
       case 0:
         raw_result = sqlite3_column_blob(stmt, colIndex);
         num_bytes = sqlite3_column_bytes(stmt, colIndex);
@@ -124,7 +137,8 @@ UserRow DBDriver::find_user(std::string user_id) {
 
   // Finalize and return.
   int exit = sqlite3_finalize(stmt);
-  if (exit != SQLITE_OK) {
+  if (exit != SQLITE_OK)
+  {
     std::cerr << "Error finding user " << std::endl;
   }
   return user;
@@ -133,7 +147,8 @@ UserRow DBDriver::find_user(std::string user_id) {
 /**
  * Insert the given user; prints an error if violated a primary key constraint.
  */
-UserRow DBDriver::insert_user(UserRow user) {
+UserRow DBDriver::insert_user(UserRow user)
+{
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
@@ -156,7 +171,8 @@ UserRow DBDriver::insert_user(UserRow user) {
   // Run and return.
   sqlite3_step(stmt);
   int exit = sqlite3_finalize(stmt);
-  if (exit != SQLITE_OK) {
+  if (exit != SQLITE_OK)
+  {
     std::cerr << "Error finding user " << std::endl;
   }
   return user;
@@ -165,7 +181,8 @@ UserRow DBDriver::insert_user(UserRow user) {
 /**
  * Get user ids
  */
-std::vector<std::string> DBDriver::get_users() {
+std::vector<std::string> DBDriver::get_users()
+{
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
@@ -181,7 +198,8 @@ std::vector<std::string> DBDriver::get_users() {
   UserRow user;
   // Retreive user.
   std::vector<std::string> users;
-  while (sqlite3_step(stmt) == SQLITE_ROW) {
+  while (sqlite3_step(stmt) == SQLITE_ROW)
+  {
     const void *raw_result;
     int num_bytes;
     raw_result = sqlite3_column_blob(stmt, 0);
@@ -192,7 +210,8 @@ std::vector<std::string> DBDriver::get_users() {
 
   // Finalize and return.
   int exit = sqlite3_finalize(stmt);
-  if (exit != SQLITE_OK) {
+  if (exit != SQLITE_OK)
+  {
     std::cerr << "Error getting users" << std::endl;
   }
   return users;

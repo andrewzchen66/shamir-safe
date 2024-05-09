@@ -38,6 +38,11 @@ ServerClient::ServerClient(ServerConfig server_config)
   this->db_driver->open(server_config.server_db_path);
   this->db_driver->init_tables();
 
+  // Initialize server cred driver.
+  this->db_driver = std::make_shared<ServerCredDBDriver>();
+  this->db_driver->open(server_config.server_cred_db_path);
+  this->db_driver->init_tables();
+
   // Initialize other nodes
   this->nodes.resize(server_config.server_nodes);
   for (int i = 0; i < server_config.server_nodes; i++)
@@ -501,7 +506,7 @@ void ServerClient::HandleRegister(
 
   if (!vk_valid)
     throw std::runtime_error(
-        "Verification Key Decrpyption/Verification not valid in HandleLogin");
+        "Verification Key Decryption/Verification not valid in HandleLogin");
 
   user_vk_msg.deserialize(user_vk_msg_vec);
 
@@ -545,6 +550,18 @@ void ServerClient::HandleGetCred(
   }
   u2s_query_msg.deserialize(u2s_query_data);
 
+  // get commitments corresponding to query from server_cred_db
+  ServerCredRow server_cred = this->db_driver->find_cred(u2s_query_msg.cred_id);
+  if (server_cred.cred_id == "")
+  {
+    std::cerr << "invalid credential: credential_id not found in database" << std::endl;
+  }
+  std::vector<CryptoPP::SecByteBlock> commitments;
+  for (int i = 0; i < server_cred.commitments.size(); i++)
+  {
+    commitments.push_back(string_to_byteblock(server_cred.commitments[i]));
+  }
+  std::vector<int> node_ids = server_cred.node_ids;
   // get all shares corresponding to query from nodes
   std::string iv;
   std::vector<SecByteBlock> shares;
@@ -570,10 +587,9 @@ void ServerClient::HandleGetCred(
   }
 
   // TODO: Verify the shares using the stored commitments
-  std::vector<SecByteBlock> commitments;
-  for (int i = 0; i < shares, shares++)
+  for (int i = 0; i < shares.size(), shares++)
   {
-    if (!crypto_driver->VerifySecretShare(shares[i]), commitments)
+    if (!crypto_driver->VerifySecretShare(i, shares[i], commitments))
     {
       std::cout << "Verification failed for share " + to_string(i) << std::endl;
       throw std::runtime_error("Verification failed for share " + to_string(i));
@@ -617,7 +633,7 @@ void ServerClient::HandlePostCred(
   }
 
   // break apart into shares
-  std::vector<SecByteBlock> shares = crypto_driver->SecretShareBytes(
+  auto [shares, commitments] = crypto_driver->SecretShareBytes(
       string_to_byteblock(u2s_cred_msg.ciphertext),
       this->server_config.server_threshold,
       this->server_config.server_nodes);

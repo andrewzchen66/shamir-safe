@@ -2,10 +2,8 @@
     "server_db_path": "../keys/server.db",
     "server_signing_key_path": "../keys/serv-rsa-private.key",
     "server_verification_key_path": "../keys/serv-rsa-public.key",
+    "server_cred_db_path": "../keys/serv-cred.db",
     "server_node_db_path": "../keys/db",
     "server_nodes": 5,
     "server_threshold": 3
 }
-
-
-DO CERTIFICATE VALIDATION

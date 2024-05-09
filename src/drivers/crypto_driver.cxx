@@ -535,32 +535,30 @@ SecByteBlock CryptoDriver::SecretRecoverBytes(std::vector<SecByteBlock> &shares,
 
 /**
  * Feldman's: Verifies that combining the commitments homomorphically produces the share for a single share. Computed in mod q
+ * @param share_id The index of the share to verify. Assumed 0-indexed
  * @param share The share to verify
  * @param commitments The commitments to verify
  * @return True if the share is verified, false otherwise
  */
-bool CryptoDriver::VerifySecretShare(std::vector<SecByteBlock> shares, std::vector<SecByteBlock> commitments)
+bool CryptoDriver::VerifySecretShare(int share_id, SecByteBlock share, std::vector<SecByteBlock> commitments)
 {
   CryptoPP::Integer q = VSS_Q; // = 2p + 1, Safe Prime
   CryptoPP::Integer g = VSS_G; // Generator for the group G = Q_q with order p
-  for (int i = 0; i < shares.size(); i++)
+  CryptoPP::Integer exp_share = Integer::a_exp_b_mod_c(g, byteblock_to_integer(share), q);
+  CryptoPP::Integer combined = 1;
+  for (int j = 0; j < commitments.size(); j++)
   {
-    CryptoPP::Integer exp_share = Integer::a_exp_b_mod_c(g, byteblock_to_integer(shares[i]), q);
-    CryptoPP::Integer combined = 1;
-    for (int j = 0; j < commitments.size(); j++)
-    {
-      combined = CryptoPP::Integer::a_times_b_mod_c(
-          combined,
-          Integer::a_exp_b_mod_c(
-              byteblock_to_integer(commitments[j]),
-              Integer::a_exp_b(i + 1, j),
-              q),
-          q);
-    }
-    if (exp_share != combined)
-    {
-      return false;
-    }
+    combined = CryptoPP::Integer::a_times_b_mod_c(
+        combined,
+        Integer::a_exp_b_mod_c(
+            byteblock_to_integer(commitments[j]),
+            Integer::a_exp_b(Integer(share_id) + 1, Integer(j)),
+            q),
+        q);
+  }
+  if (exp_share != combined)
+  {
+    return false;
   }
   return true;
 }
