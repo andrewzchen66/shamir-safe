@@ -17,6 +17,7 @@
 #include "../../include/drivers/network_driver.hpp"
 #include "../../include-shared/config.hpp"
 #include "../../include-shared/keyloaders.hpp"
+#include "../../include/drivers/server_cred_db_driver.hpp"
 
 class ServerClient {
 public:
@@ -50,6 +51,7 @@ private:
   ServerConfig server_config;
   std::shared_ptr<CLIDriver> cli_driver;
   std::shared_ptr<DBDriver> db_driver;
+  std::shared_ptr<ServerCredDBDriver> server_cred_db_driver;
   std::vector<std::shared_ptr<NodeDBDriver>> nodes;
 
   CryptoPP::RSA::PrivateKey RSA_signing_key;

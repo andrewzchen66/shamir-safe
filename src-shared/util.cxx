@@ -1,16 +1,5 @@
 #include "../include-shared/util.hpp"
-#include <NTL/ZZ.h>
 #include <iostream>
-
-std::string ZZToString(const NTL::ZZ &zz)
-{
-  return NTL::conv<std::string>(zz);
-}
-
-long ZZToLong(const NTL::ZZ &zz)
-{
-  return NTL::conv<long>(zz);
-}
 
 /**
  * Convert char vec to string.

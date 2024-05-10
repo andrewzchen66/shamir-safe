@@ -15,17 +15,11 @@
 #include "crypto++/blake2.h"
 #include "cryptopp/ida.h"
 
-#include <NTL/ZZ_p.h>
-#include <NTL/ZZ_pX.h>
-#include <NTL/tools.h>
-#include <NTL/ZZ.h>
-
 #include "../../include-shared/constants.hpp"
 #include "../../include-shared/util.hpp"
 #include "../../include/drivers/crypto_driver.hpp"
 
 using namespace CryptoPP;
-using namespace NTL;
 
 /**
  * @brief Encrypts the given message using AES and tags the ciphertext with an
@@ -443,19 +437,19 @@ std::pair<std::vector<SecByteBlock>, std::vector<SecByteBlock>> CryptoDriver::Se
     for (int j = 0; j < nShares; j++)
     {
       // Add to running sum of shares
-      shares[j] = (shares[j] + Integer::a_times_b_mod_c(coefficient, a_exp_b_mod_c(CryptoPP::Integer(j + 1), i, p), p)) % p;
+      shares[j] = (shares[j] + CryptoPP::Integer::a_times_b_mod_c(coefficient, a_exp_b_mod_c(CryptoPP::Integer(j + 1), i, p), p)) % p;
     }
   }
   std::vector<SecByteBlock> byteblock_shares(nShares);
   std::vector<SecByteBlock> byteblock_commitments(threshold);
   // Convert everything to SecByteblocks
-  for (share : shares)
+  for (int i = 0 ; i < shares.size(); i++)
   {
-    byteblock_shares[i] = integer_to_byteblock(share);
+    byteblock_shares[i] = integer_to_byteblock(shares[i]);
   }
-  for (commitment : commitments)
+  for (int i = 0 ; i < commitments.size(); i++)
   {
-    byteblock_commitments[i] = integer_to_byteblock(commitment);
+    byteblock_commitments[i] = integer_to_byteblock(commitments[i]);
   }
   return std::pair<std::vector<SecByteBlock>, std::vector<SecByteBlock>>(byteblock_shares, byteblock_commitments);
 
@@ -523,11 +517,11 @@ SecByteBlock CryptoDriver::SecretRecoverBytes(std::vector<SecByteBlock> &shares,
     {
       if (j != i)
       {
-        numerator = Integer::a_times_b_mod_c(numerator, CryptoPP::Integer(j + 1), p);
-        denominator = Integer::a_times_b_mod_c(denominator, CryptoPP::Integer(j - i), p);
+        numerator = CryptoPP::Integer::a_times_b_mod_c(numerator, CryptoPP::Integer(j + 1), p);
+        denominator = CryptoPP::Integer::a_times_b_mod_c(denominator, CryptoPP::Integer(j - i), p);
       }
     }
-    secret = (secret + ((Integer::a_times_b_mod_c(numerator, integer_to_byteblock(shares[i]), p) / denominator) % p)) % p;
+    secret = (secret + ((CryptoPP::Integer::a_times_b_mod_c(numerator, byteblock_to_integer(shares[i]), p) / denominator) % p)) % p;
   }
 
   return integer_to_byteblock(secret);
@@ -544,15 +538,15 @@ bool CryptoDriver::VerifySecretShare(int share_id, SecByteBlock share, std::vect
 {
   CryptoPP::Integer q = VSS_Q; // = 2p + 1, Safe Prime
   CryptoPP::Integer g = VSS_G; // Generator for the group G = Q_q with order p
-  CryptoPP::Integer exp_share = Integer::a_exp_b_mod_c(g, byteblock_to_integer(share), q);
+  CryptoPP::Integer exp_share = CryptoPP::Integer::a_exp_b_mod_c(g, byteblock_to_integer(share), q);
   CryptoPP::Integer combined = 1;
   for (int j = 0; j < commitments.size(); j++)
   {
     combined = CryptoPP::Integer::a_times_b_mod_c(
         combined,
-        Integer::a_exp_b_mod_c(
+        CryptoPP::Integer::a_exp_b_mod_c(
             byteblock_to_integer(commitments[j]),
-            Integer::a_exp_b(Integer(share_id) + 1, Integer(j)),
+            CryptoPP::Integer::a_exp_b(CryptoPP::Integer(share_id) + 1, CryptoPP::Integer(j)),
             q),
         q);
   }

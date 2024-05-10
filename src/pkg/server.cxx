@@ -7,6 +7,10 @@
 #include <stdexcept>
 #include <string>
 #include <sys/ioctl.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+
 
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
@@ -20,6 +24,7 @@
 #include "../../include/drivers/repl_driver.hpp"
 #include "../../include/pkg/server.hpp"
 #include "../../include/pkg/user.hpp"
+#include "../../include/drivers/server_cred_db_driver.hpp"
 
 /**
  * Constructor
@@ -39,9 +44,9 @@ ServerClient::ServerClient(ServerConfig server_config)
   this->db_driver->init_tables();
 
   // Initialize server cred driver.
-  this->db_driver = std::make_shared<ServerCredDBDriver>();
-  this->db_driver->open(server_config.server_cred_db_path);
-  this->db_driver->init_tables();
+  this->server_cred_db_driver = std::make_shared<ServerCredDBDriver>();
+  this->server_cred_db_driver->open(server_config.server_cred_db_path);
+  this->server_cred_db_driver->init_tables();
 
   // Initialize other nodes
   this->nodes.resize(server_config.server_nodes);
@@ -551,7 +556,7 @@ void ServerClient::HandleGetCred(
   u2s_query_msg.deserialize(u2s_query_data);
 
   // get commitments corresponding to query from server_cred_db
-  ServerCredRow server_cred = this->db_driver->find_cred(u2s_query_msg.cred_id);
+  ServerCredRow server_cred = this->server_cred_db_driver->find_cred(u2s_query_msg.cred_id);
   if (server_cred.cred_id == "")
   {
     std::cerr << "invalid credential: credential_id not found in database" << std::endl;
@@ -587,12 +592,12 @@ void ServerClient::HandleGetCred(
   }
 
   // TODO: Verify the shares using the stored commitments
-  for (int i = 0; i < shares.size(), shares++)
+  for (int i = 0; i < shares.size(); i++)
   {
     if (!crypto_driver->VerifySecretShare(i, shares[i], commitments))
     {
-      std::cout << "Verification failed for share " + to_string(i) << std::endl;
-      throw std::runtime_error("Verification failed for share " + to_string(i));
+      std::cout << "Verification failed for share" << std::endl;
+      throw std::runtime_error("Verification failed for share");
     }
   }
 
@@ -646,7 +651,7 @@ void ServerClient::HandlePostCred(
     server_cred.commitments.push_back(byteblock_to_string(commitments[i]));
     server_cred.node_ids.push_back(i);
   }
-  this->db_driver->insert_cred(server_cred);
+  this->server_cred_db_driver->insert_cred(server_cred);
 
   // store shares into node dbs
   for (int i = 0; i < this->server_config.server_nodes; i++)

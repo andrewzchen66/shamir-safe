@@ -62,6 +62,8 @@ public:
   SecByteBlock png(int numBytes);
   std::string hash(std::string msg);
 
-  std::vector<SecByteBlock> SecretShareBytes(const SecByteBlock& secret, int threshold, int nShares);
+  // std::vector<SecByteBlock> SecretShareBytes(const SecByteBlock& secret, int threshold, int nShares);
+  std::pair<std::vector<SecByteBlock>, std::vector<SecByteBlock>> SecretShareBytes(const SecByteBlock &secret, int threshold, int nShares);
   SecByteBlock SecretRecoverBytes(std::vector<SecByteBlock>& shares, int threshold);
+  bool VerifySecretShare(int share_id, SecByteBlock share, std::vector<SecByteBlock> commitments);
 };
