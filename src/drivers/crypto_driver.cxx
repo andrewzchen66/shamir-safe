@@ -443,11 +443,11 @@ std::pair<std::vector<SecByteBlock>, std::vector<SecByteBlock>> CryptoDriver::Se
   std::vector<SecByteBlock> byteblock_shares(nShares);
   std::vector<SecByteBlock> byteblock_commitments(threshold);
   // Convert everything to SecByteblocks
-  for (int i = 0 ; i < shares.size(); i++)
+  for (int i = 0; i < shares.size(); i++)
   {
     byteblock_shares[i] = integer_to_byteblock(shares[i]);
   }
-  for (int i = 0 ; i < commitments.size(); i++)
+  for (int i = 0; i < commitments.size(); i++)
   {
     byteblock_commitments[i] = integer_to_byteblock(commitments[i]);
   }
@@ -546,7 +546,7 @@ bool CryptoDriver::VerifySecretShare(int share_id, SecByteBlock share, std::vect
         combined,
         a_exp_b_mod_c(
             byteblock_to_integer(commitments[j]),
-            (CryptoPP::Integer(share_id) + 1) ^ (CryptoPP::Integer(j)),
+            (share_id + 1) ^ (j),
             q),
         q);
   }
