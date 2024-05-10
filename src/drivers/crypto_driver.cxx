@@ -546,7 +546,7 @@ bool CryptoDriver::VerifySecretShare(int share_id, SecByteBlock share, std::vect
         combined,
         a_exp_b_mod_c(
             byteblock_to_integer(commitments[j]),
-            (share_id + 1) ^ (j),
+            CryptoPP::Integer((share_id + 1) ^ (j)),
             q),
         q);
   }
