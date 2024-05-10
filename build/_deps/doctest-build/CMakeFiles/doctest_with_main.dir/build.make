@@ -60,15 +60,15 @@ include _deps/doctest-build/CMakeFiles/doctest_with_main.dir/flags.make
 _deps/doctest-build/CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.o: _deps/doctest-build/CMakeFiles/doctest_with_main.dir/flags.make
 _deps/doctest-build/CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.o: _deps/doctest-src/doctest/parts/doctest.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/cs1515-user/final-ps-wd/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object _deps/doctest-build/CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.o"
-	cd /home/cs1515-user/final-ps-wd/build/_deps/doctest-build && /usr/bin/clang++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.o -c /home/cs1515-user/final-ps-wd/build/_deps/doctest-src/doctest/parts/doctest.cpp
+	cd /home/cs1515-user/final-ps-wd/build/_deps/doctest-build && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.o -c /home/cs1515-user/final-ps-wd/build/_deps/doctest-src/doctest/parts/doctest.cpp
 
 _deps/doctest-build/CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.i"
-	cd /home/cs1515-user/final-ps-wd/build/_deps/doctest-build && /usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/cs1515-user/final-ps-wd/build/_deps/doctest-src/doctest/parts/doctest.cpp > CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.i
+	cd /home/cs1515-user/final-ps-wd/build/_deps/doctest-build && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/cs1515-user/final-ps-wd/build/_deps/doctest-src/doctest/parts/doctest.cpp > CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.i
 
 _deps/doctest-build/CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.s"
-	cd /home/cs1515-user/final-ps-wd/build/_deps/doctest-build && /usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/cs1515-user/final-ps-wd/build/_deps/doctest-src/doctest/parts/doctest.cpp -o CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.s
+	cd /home/cs1515-user/final-ps-wd/build/_deps/doctest-build && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/cs1515-user/final-ps-wd/build/_deps/doctest-src/doctest/parts/doctest.cpp -o CMakeFiles/doctest_with_main.dir/doctest/parts/doctest.cpp.s
 
 # Object files for target doctest_with_main
 doctest_with_main_OBJECTS = \

@@ -110,6 +110,17 @@ ServerCredRow ServerCredDBDriver::find_cred(std::string cred_id)
     {
       const void *raw_result;
       int num_bytes;
+
+      std::string str_commitments;
+      std::stringstream test;
+      std::string segment;
+      std::vector<std::string> seglist;
+
+      std::stringstream test2;
+      std::string segment2;
+      std::vector<int> seglist2;
+
+
       switch (colIndex)
       {
       case 0:
@@ -119,10 +130,10 @@ ServerCredRow ServerCredDBDriver::find_cred(std::string cred_id)
       case 1:
         raw_result = sqlite3_column_blob(stmt, colIndex);
         num_bytes = sqlite3_column_bytes(stmt, colIndex);
-        std::string str_commitments = std::string((const char *)raw_result, num_bytes);
-        std::stringstream test = std::stringstream(str_commitments);
-        std::string segment;
-        std::vector<std::string> seglist;
+        str_commitments = std::string((const char *)raw_result, num_bytes);
+        test = std::stringstream(str_commitments);
+        // std::string segment;
+        // std::vector<std::string> seglist;
         std::getline(test, segment, '|');
         while (std::getline(test, segment, '|'))
         {
@@ -135,15 +146,15 @@ ServerCredRow ServerCredDBDriver::find_cred(std::string cred_id)
         raw_result = sqlite3_column_blob(stmt, colIndex);
         num_bytes = sqlite3_column_bytes(stmt, colIndex);
         std::string str_node_ids = std::string((const char *)raw_result, num_bytes);
-        std::stringstream test = std::stringstream(str_node_ids);
-        std::string segment;
-        std::vector<int> seglist;
-        std::getline(test, segment, '|');
-        while (std::getline(test, segment, '|'))
+        test2 = std::stringstream(str_node_ids);
+        // segment2;
+        // seglist2;
+        std::getline(test2, segment2, '|');
+        while (std::getline(test2, segment2, '|'))
         {
-          seglist.push_back(stoi(segment));
+          seglist2.push_back(stoi(segment2));
         }
-        cred.node_ids = seglist;
+        cred.node_ids = seglist2;
         break;
       }
     }

@@ -960,6 +960,33 @@ src/drivers/repl_driver.cxx.s:
 	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/repl_driver.cxx.s
 .PHONY : src/drivers/repl_driver.cxx.s
 
+src/drivers/server_cred_db_driver.o: src/drivers/server_cred_db_driver.cxx.o
+
+.PHONY : src/drivers/server_cred_db_driver.o
+
+# target to build an object file
+src/drivers/server_cred_db_driver.cxx.o:
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/server_cred_db_driver.cxx.o
+.PHONY : src/drivers/server_cred_db_driver.cxx.o
+
+src/drivers/server_cred_db_driver.i: src/drivers/server_cred_db_driver.cxx.i
+
+.PHONY : src/drivers/server_cred_db_driver.i
+
+# target to preprocess a source file
+src/drivers/server_cred_db_driver.cxx.i:
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/server_cred_db_driver.cxx.i
+.PHONY : src/drivers/server_cred_db_driver.cxx.i
+
+src/drivers/server_cred_db_driver.s: src/drivers/server_cred_db_driver.cxx.s
+
+.PHONY : src/drivers/server_cred_db_driver.s
+
+# target to generate assembly for a file
+src/drivers/server_cred_db_driver.cxx.s:
+	$(MAKE) -f CMakeFiles/pswd_lib.dir/build.make CMakeFiles/pswd_lib.dir/src/drivers/server_cred_db_driver.cxx.s
+.PHONY : src/drivers/server_cred_db_driver.cxx.s
+
 src/pkg/server.o: src/pkg/server.cxx.o
 
 .PHONY : src/pkg/server.o
@@ -1100,6 +1127,9 @@ help:
 	@echo "... src/drivers/repl_driver.o"
 	@echo "... src/drivers/repl_driver.i"
 	@echo "... src/drivers/repl_driver.s"
+	@echo "... src/drivers/server_cred_db_driver.o"
+	@echo "... src/drivers/server_cred_db_driver.i"
+	@echo "... src/drivers/server_cred_db_driver.s"
 	@echo "... src/pkg/server.o"
 	@echo "... src/pkg/server.i"
 	@echo "... src/pkg/server.s"

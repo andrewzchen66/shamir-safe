@@ -42,6 +42,7 @@ set(SOURCES
   src/pkg/user.cxx
   src/drivers/cli_driver.cxx
   src/drivers/crypto_driver.cxx
+  src/drivers/server_cred_db_driver.cxx
   src/drivers/db_driver.cxx
   src/drivers/node_db_driver.cxx
   src/drivers/network_driver.cxx
