@@ -11,7 +11,7 @@
 using namespace boost::asio::ip;
 
 /*
- * Usage: ./auth_server <port> <json config file path>
+ * Usage: ./server <port> <json config file path>
  */
 int main(int argc, char *argv[]) {
   // Initialize logger

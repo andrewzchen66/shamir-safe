@@ -10,7 +10,7 @@
 #include "../../include/pkg/user.hpp"
 
 /*
- * Usage: ./auth_user <json config file path>
+ * Usage: ./user <json config file path>
  */
 int main(int argc, char *argv[]) {
   // Initialize logger

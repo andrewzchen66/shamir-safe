@@ -42,11 +42,11 @@ void ServerCredDBDriver::init_tables()
       sqlite3_exec(this->db, create_cred_table_query.c_str(), NULL, 0, &err);
   if (exit != SQLITE_OK)
   {
-    std::cerr << "Error creating creds table: " << err << std::endl;
+    std::cerr << "Error creating server creds table: " << err << std::endl;
   }
   else
   {
-    std::cout << "Creds table created successfully" << std::endl;
+    std::cout << "Server Creds table created successfully" << std::endl;
   }
 }
 

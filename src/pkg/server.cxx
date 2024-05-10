@@ -43,10 +43,6 @@ ServerClient::ServerClient(ServerConfig server_config)
   this->db_driver->open(server_config.server_db_path);
   this->db_driver->init_tables();
 
-  // Initialize server cred driver.
-  this->server_cred_db_driver = std::make_shared<ServerCredDBDriver>();
-  this->server_cred_db_driver->open(server_config.server_cred_db_path);
-  this->server_cred_db_driver->init_tables();
 
   // Initialize other nodes
   this->nodes.resize(server_config.server_nodes);
@@ -58,6 +54,11 @@ ServerClient::ServerClient(ServerConfig server_config)
     this->nodes[i]->init_tables();
 
     std::cout << node_db_path << std::endl;
+
+  // Initialize server cred driver.
+  this->server_cred_db_driver = std::make_shared<ServerCredDBDriver>();
+  this->server_cred_db_driver->open(server_config.server_cred_db_path);
+  this->server_cred_db_driver->init_tables();
   }
 
   // Load server keys.
@@ -642,11 +643,10 @@ void ServerClient::HandlePostCred(
       string_to_byteblock(u2s_cred_msg.ciphertext),
       this->server_config.server_threshold,
       this->server_config.server_nodes);
-
   // store cred and commitments into server_cred_db
   ServerCredRow server_cred;
   server_cred.cred_id = u2s_cred_msg.cred_id;
-  for (int i = 0; i < this->server_config.server_nodes; i++)
+  for (int i = 0; i < this->server_config.server_threshold; i++)
   {
     server_cred.commitments.push_back(byteblock_to_string(commitments[i]));
     server_cred.node_ids.push_back(i);
