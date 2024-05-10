@@ -102,7 +102,7 @@ ServerCredRow ServerCredDBDriver::find_cred(std::string cred_id)
                      nullptr);
   sqlite3_bind_blob(stmt, 1, cred_id.c_str(), cred_id.length(), SQLITE_STATIC);
 
-  // Retreive cred.
+  // Retrieve cred.
   ServerCredRow cred;
   if (sqlite3_step(stmt) == SQLITE_ROW)
   {
@@ -174,7 +174,7 @@ ServerCredRow ServerCredDBDriver::insert_cred(ServerCredRow cred)
   // Lock db driver.
   std::unique_lock<std::mutex> lck(this->mtx);
 
-  std::string insert_query = "INSERT INTO cred(cred_id, commitments, node_ids)"
+  std::string insert_query = "INSERT INTO server_cred(cred_id, commitments, node_ids)"
                              " VALUES(?, ?, ?);";
 
   // Prepare statement.

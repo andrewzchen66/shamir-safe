@@ -45,7 +45,7 @@ void NodeDBDriver::init_tables()
   }
   else
   {
-    std::cout << "Creds table created successfully" << std::endl;
+    std::cout << "Node Creds table created successfully" << std::endl;
   }
 }
 

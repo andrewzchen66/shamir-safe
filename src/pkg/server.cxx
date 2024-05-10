@@ -556,10 +556,11 @@ void ServerClient::HandleGetCred(
   u2s_query_msg.deserialize(u2s_query_data);
 
   // get commitments corresponding to query from server_cred_db
+  std::cout << "finding cred_id: " + u2s_query_msg.cred_id << std::endl;
   ServerCredRow server_cred = this->server_cred_db_driver->find_cred(u2s_query_msg.cred_id);
   if (server_cred.cred_id == "")
   {
-    std::cerr << "invalid credential: credential_id not found in database" << std::endl;
+    std::cerr << "invalid credential: credential_id not found in server_cred database" << std::endl;
   }
   std::vector<CryptoPP::SecByteBlock> commitments;
   for (int i = 0; i < server_cred.commitments.size(); i++)
@@ -575,7 +576,7 @@ void ServerClient::HandleGetCred(
     CredRow cred = this->nodes[i]->find_cred(u2s_query_msg.cred_id);
     if (cred.cred_id == "")
     {
-      std::cerr << "invalid credential: credential_id not found in database" << std::endl;
+      std::cerr << "invalid credential: credential_id not found in node_database" << std::endl;
     }
     else
     {
@@ -644,6 +645,7 @@ void ServerClient::HandlePostCred(
       this->server_config.server_nodes);
   // store cred and commitments into server_cred_db
   ServerCredRow server_cred;
+  std::cout << "server: storing cred_id " + u2s_cred_msg.cred_id << std::endl;
   server_cred.cred_id = u2s_cred_msg.cred_id;
   for (int i = 0; i < this->server_config.server_threshold; i++)
   {
@@ -653,6 +655,7 @@ void ServerClient::HandlePostCred(
   this->server_cred_db_driver->insert_cred(server_cred);
 
   // store shares into node dbs
+  std::cout << "nodes: storing cred_id " + u2s_cred_msg.cred_id << std::endl;
   for (int i = 0; i < this->server_config.server_nodes; i++)
   {
     CredRow cred;
