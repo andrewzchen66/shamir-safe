@@ -56,6 +56,7 @@ ServerClient::ServerClient(ServerConfig server_config)
     std::cout << node_db_path << std::endl;
   }
   // Initialize server cred driver.
+  std::cout << server_config.server_cred_db_path << std::endl;
   this->server_cred_db_driver = std::make_shared<ServerCredDBDriver>();
   this->server_cred_db_driver->open(server_config.server_cred_db_path);
   this->server_cred_db_driver->init_tables();
